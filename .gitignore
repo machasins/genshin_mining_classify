@@ -3,3 +3,4 @@
 /models/*.joblib
 /key.json
 models/config.json
+run.bat
