@@ -1,0 +1,48 @@
+{
+  "Mondstadt_leyline": 1713817470.807694,
+  "Liyue_leyline": 1713817601.372527,
+  "Inazuma_leyline": 1713817637.339906,
+  "Sumeru_leyline": 1713817667.436437,
+  "Fontaine_leyline": 1713817674.905403,
+  "Mondstadt_location": 1713817675.717142,
+  "Liyue_location": 1713817677.092456,
+  "Inazuma_location": 1713817678.107389,
+  "Sumeru_location": 1713817678.922878,
+  "Fontaine_location": 1713817679.685442,
+  "Mondstadt_mining": 1713817680.318018,
+  "Liyue_mining": 1713817681.371975,
+  "Inazuma_mining": 1713817682.399909,
+  "Sumeru_mining": 1713817683.266697,
+  "Fontaine_mining": 1713817683.985351,
+  "Data": 1716495242.773706,
+  "Mondstadt_leyline_accuracy": [
+    0.9519650655021834,
+    0.9563318777292577
+  ],
+  "Liyue_leyline_accuracy": [
+    0.8864628820960698,
+    0.8864628820960698
+  ],
+  "Inazuma_leyline_accuracy": [
+    0.9851485148514851,
+    0.9851485148514851
+  ],
+  "Sumeru_leyline_accuracy": [
+    0.9836065573770492,
+    0.9836065573770492
+  ],
+  "Fontaine_leyline_accuracy": [
+    0.86,
+    0.86
+  ],
+  "Mondstadt_location_accuracy": 0.894205594007594,
+  "Liyue_location_accuracy": 0.8716539202932536,
+  "Inazuma_location_accuracy": 0.9852632392749656,
+  "Sumeru_location_accuracy": 0.38115570154611017,
+  "Fontaine_location_accuracy": 0.9083608868408195,
+  "Mondstadt_mining_accuracy": 0.9614244292278622,
+  "Liyue_mining_accuracy": 0.9728505082683364,
+  "Inazuma_mining_accuracy": 0.9596463057229356,
+  "Sumeru_mining_accuracy": 0.9761323513184392,
+  "Fontaine_mining_accuracy": 0.8148225539640009
+}

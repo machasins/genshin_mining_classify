@@ -1,0 +1,22 @@
+{
+  "force_data_reset": false,
+  "force_model_reset": false,
+  "feature_suffix": "_image",
+  "label_suffix": "_nation",
+  "ylabel_suffix": "_y",
+  "blabel_suffix": "_b",
+  "ore1_suffix": "_1",
+  "ore2_suffix": "_2",
+  "date_suffix": "_date",
+  "data_prefix": "data/",
+  "model_prefix": "models/",
+  "min_data_days": 30,
+  "sheet": "1V6U00KnAiU15xcYjbVUR_sTh2X2KRKeNH5_cA6tYzmw",
+  "nations": [
+    "Mondstadt",
+    "Liyue",
+    "Inazuma",
+    "Sumeru",
+    "Fontaine"
+  ]
+}
