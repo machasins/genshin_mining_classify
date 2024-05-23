@@ -36,8 +36,15 @@ class DataRetriever():
             
         # Authenticate Google Sheets API
         write_log("Data: Connecting to Sheets...", log.info, True, verbose, end="\r")
+        if not isfile("key.json"):
+            write_log("File \"key.json\" does not exist. Please create the file with your Google Sheets credentials.", log.error, False, False)
+            exit(1)
         self.client = gspread.service_account("key.json")
-        self.ws = self.client.open_by_key(self.sheet_id)
+        try:
+            self.ws = self.client.open_by_key(self.sheet_id)
+        except:
+            write_log("The sheet ID in the config is not valid with your account.", log.error, False, False)
+            exit(1)
         
         # Read data from files
         self.read_data()

@@ -42,7 +42,7 @@ class Trainer():
                 self.model[c][attributes[1]] = {}
                 for n in self.nations:
                     self.model[c][attributes[0]][n] = isfile(self.model_prefix + n.lower() + "_" + c + ".joblib")
-                    self.model[c][attributes[1]][n] = self.model_data[n + "_" + c + "_accuracy"]
+                    self.model[c][attributes[1]][n] = self.model_data[n + "_" + c + "_accuracy"] if n + "_" + c + "_accuracy" in self.model_data else -1
         self.force_reset = do_reset
     
     def predict(self, features):
@@ -71,7 +71,7 @@ class LeylineTrainer(Trainer):
                 "y" : load(self.model_prefix + nation + "_y.joblib"),
                 "b" : load(self.model_prefix + nation + "_b.joblib")
             }
-            self.accuracy = self.leyline["accuracy"][nation]
+            self.accuracy = self.leyline["accuracy"][nation] if self.leyline["accuracy"][nation] is list else [ -1, -1 ]
         else:
             write_log(f"Training: Old model out of date, training new model for { nation }...", log.warning, False, verbose)
             feature = np.load(self.data_prefix + nation.lower() + self.suffix["f"] + ".npy")

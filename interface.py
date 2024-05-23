@@ -1,3 +1,4 @@
+import sys
 import json
 import time
 import webbrowser
@@ -6,6 +7,7 @@ import logging as log
 from tkinter import *
 from tkinter import ttk, font
 from functools import partial
+from distutils.util import strtobool
 
 import input
 import process
@@ -238,5 +240,9 @@ def open_browser(variables, index, event):
 
 if __name__ == "__main__":
     log.basicConfig(format="%(message)s", level=log.INFO)
-    i = Interface(True)
+    try:
+        verbose = bool(strtobool(sys.argv[1]))
+    except:
+        verbose = False
+    i = Interface(verbose)
     i.main_loop()

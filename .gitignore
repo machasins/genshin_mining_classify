@@ -1,0 +1,5 @@
+/__pycache__
+/data/*.npy
+/models/*.joblib
+/key.json
+models/config.json

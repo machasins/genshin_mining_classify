@@ -23,8 +23,13 @@ class Input():
             self.model_prefix = data["model_prefix"]
             self.force_data_reset = data["force_data_reset"]
             self.force_model_reset = data["force_model_reset"]
-        with open(self.model_prefix + "config.json", "r") as d:
-            self.data_time = date.fromtimestamp(json.load(d)["Data"])
+        try:
+            with open(self.model_prefix + "config.json", "r") as d:
+                self.data_time = date.fromtimestamp(json.load(d)["Data"])
+        except FileNotFoundError:
+            with open(self.model_prefix + "config.json", "w") as d:
+                self.data_time = date(0,0,0)
+                json.dump({"Data" : self.data_time.timestamp}, d)
         
         self.data_reset = self.force_data_reset or (date.now() - self.data_time).days >= self.data_days
         if self.data_reset:
@@ -52,10 +57,17 @@ class Input():
         self.cur = self.db.cursor()
         
     def connect_sheet(self):
+        if not isfile("key.json"):
+            write_log("File \"key.json\" does not exist. Please create the file with your Google Sheets credentials.", log.error, False, False)
+            exit(1)
         # Authenticate Google Sheets API
         self.client = gspread.service_account("key.json")
-        self.ws = self.client.open_by_key(self.sheet_id)
-        self.sheet = self.ws.worksheet("DataEntry")
+        try:
+            self.ws = self.client.open_by_key(self.sheet_id)
+            self.sheet = self.ws.worksheet("DataEntry")
+        except:
+            write_log("The sheet ID in the config is not valid with your account.", log.error, False, False)
+            exit(1)
         
         self.leyline_col = self.sheet.find("Leyline", 1).col
         self.ending_col = self.sheet.find("Options:", 1).col - 3
