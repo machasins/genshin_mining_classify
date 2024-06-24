@@ -84,21 +84,21 @@ class DataRetriever():
             # Find column for leyline screenshots
             leyline_col = sheet.find("Leyline", 1).col
             # Get all image URLs
-            image_urls = sheet.col_values(leyline_col)[2:]
+            data_amount = len(sheet.col_values(leyline_col)[2:])
             # Check if current data is sufficent
-            curr_nlength = len(self.ex_data[i]["f"])
-            if len(image_urls) <= curr_nlength:
+            current_amount = len(self.ex_data[i]["d"])
+            if data_amount <= current_amount:
                 write_log(f"Data: {n} looks done already.", log.info, True, self.verbose, end='\r')
                 continue
             write_log(f"Data: Working on {n}...", log.info, True, self.verbose, end='\r')
             
             # Get all date data
-            dates = sheet.col_values(1)[2 + curr_nlength:2 + len(image_urls)]
+            dates = sheet.col_values(1)[2 + current_amount:2 + data_amount]
             dates = [date.strptime(d, '%m/%d/%y') for d in dates]
             self.ex_data[i]["d"].extend([[d.year, d.month, d.day] for d in dates])
             
             # Get all ore data
-            ore_data = sheet.range(3 + curr_nlength, 2, sheet.row_count, leyline_col - 1)
+            ore_data = sheet.range(3 + current_amount, 2, 3 + data_amount, leyline_col - 1)
             # Split range data by row
             ores = [ore_data[i:i + leyline_col - 2] for i in range(0, len(ore_data), leyline_col - 2)]
             # Get cell values instead of Cell objects
@@ -108,10 +108,13 @@ class DataRetriever():
             self.ex_data[i]['1'].extend([x[0] for x in ores])
             self.ex_data[i]['2'].extend([x[1] for x in ores])
             
+            # Get all image URLs
+            image_urls = sheet.col_values(leyline_col)[2 + current_amount: 2 + data_amount]
+            
             # Find column for end of sheet data
             end_col = sheet.find("2", 1).col
             # Get all labels [[y,b], [y,b], ...]
-            label_data = sheet.range(3 + curr_nlength, leyline_col + 1, sheet.row_count, end_col - 1)
+            label_data = sheet.range(3 + current_amount, leyline_col + 1, 3 + data_amount, end_col - 1)
             # Split range data by row
             leylines = [label_data[i:i + end_col - 1 - leyline_col] for i in range(0, len(label_data), end_col - 1 - leyline_col)]
             # Get cell values instead of Cell objects
@@ -147,6 +150,8 @@ class DataRetriever():
         data["Data"] = date.now().timestamp()
         with open(self.model_prefix + "config.json", "w") as config:
             json.dump(data, config, indent=2)
+            
+        write_log("Data: Timestamp updated.", log.info, False, self.verbose)
 
 # Main function
 def main():

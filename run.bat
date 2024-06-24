@@ -1,1 +1,1 @@
-C:/Users/rotom/AppData/Local/Microsoft/WindowsApps/python3.9.exe d:/Personal/python/genshin/leyline_classify/interface.py
+C:/Users/rotom/AppData/Local/Microsoft/WindowsApps/python3.9.exe d:/Personal/python/genshin/leyline_classify/interface.py True

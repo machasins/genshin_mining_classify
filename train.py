@@ -75,10 +75,12 @@ class LeylineTrainer(Trainer):
         else:
             write_log(f"Training: Old model out of date, training new model for { nation }...", log.warning, False, verbose)
             feature = np.load(self.data_prefix + nation.lower() + self.suffix["f"] + ".npy")
+            write_log(f"Training: Loaded data for { nation }...", log.info, False, verbose)
             ylabels = np.load(self.data_prefix + nation.lower() + self.suffix["y"] + ".npy")
             blabels = np.load(self.data_prefix + nation.lower() + self.suffix["b"] + ".npy")
+            write_log(f"Training: Loaded results for { nation }...", log.info, False, verbose)
             
-            write_log(f"Training: Training { nation }...", log.info, True, verbose, end="\r")
+            write_log(f"Training: Training { nation }...", log.info, True, verbose)
             yclassifier, yaccuracy = process.train_svc(feature, ylabels)
             bclassifier, baccuracy = process.train_svc(feature, blabels)
             self.classifier = { "y" : yclassifier, "b" : bclassifier }
@@ -151,7 +153,9 @@ class MiningTrainer(Trainer):
                 lists['y'].reshape(-1, 1), 
                 lists['b'].reshape(-1, 1)
                 ], axis=1)
+            write_log(f"Training: Loaded data for { nation }...", log.info, False, verbose)
             labels = np.load(self.data_prefix + nation.lower() + self.suffix['2'] + ".npy")
+            write_log(f"Training: Loaded results for { nation }...", log.info, False, verbose)
             
             write_log(f"Training: Training { nation }...", log.info, True, verbose, end="\r")
             self.classifier, self.accuracy = process.train_mrfc(feature, labels)
