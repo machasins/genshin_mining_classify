@@ -1,8 +1,9 @@
 import sys
 import json
 import time
-import webbrowser
+import argparse
 import threading
+import webbrowser
 import logging as log
 from tkinter import *
 from tkinter import ttk, font
@@ -202,11 +203,11 @@ class Interface():
     # Wait for all queue entries to finish
     def wait_for_queue(self, queue_num, callback):
         while self.queue_processing != queue_num:
-            time.sleep(0.5)
+            time.sleep(0.1)
         
         all_dead = False
         while not all_dead:
-            time.sleep(0.5)
+            time.sleep(0.1)
             all_dead = True
             for t in self.thread_queue:
                 t.join(1)
@@ -239,10 +240,12 @@ def open_browser(variables, index, event):
     webbrowser.open_new(variables[index].get())
 
 if __name__ == "__main__":
-    log.basicConfig(format="%(message)s", level=log.INFO)
-    try:
-        verbose = bool(strtobool(sys.argv[1]))
-    except:
-        verbose = False
-    i = Interface(verbose)
+    parser = argparse.ArgumentParser(prog="Leyline Classifier",
+                                  description="Classifies Leylines and Mining Outcrops with the use of AI")
+    parser.add_argument('-v', '--verbose', dest="verbose", action="store_const", default=False, const=True, help="whether console output should be verbose")
+    parser.add_argument('-o', '--output', dest="output", default="warning", help="what type of output should be printed", type=str, choices=["info", "warning", "error"])
+    parser.add_argument('-f', '--fileOutput', dest="file", default=None, help="what file the output should be printed to", type=str)
+    arg = parser.parse_args()
+    log.basicConfig(format="%(message)s", level=arg.output.upper() if not arg.verbose else "INFO", filename=arg.file)
+    i = Interface(arg.verbose)
     i.main_loop()
