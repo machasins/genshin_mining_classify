@@ -75,10 +75,10 @@ class LeylineTrainer(Trainer):
         else:
             write_log(f"Training: Old leyline model out of date, training new model for { nation }...", log.warning, False, verbose)
             feature = np.load(self.data_prefix + nation.lower() + self.suffix["f"] + ".npy")
-            write_log(f"Training: Loaded data for { nation }...", log.info, False, verbose)
+            write_log(f"Training: Loaded data for { nation }...", log.info, True, verbose)
             ylabels = np.load(self.data_prefix + nation.lower() + self.suffix["y"] + ".npy")
             blabels = np.load(self.data_prefix + nation.lower() + self.suffix["b"] + ".npy")
-            write_log(f"Training: Loaded results for { nation }...", log.info, False, verbose)
+            write_log(f"Training: Loaded results for { nation }...", log.info, True, verbose)
             
             write_log(f"Training: Training { nation }...", log.info, True, verbose)
             yclassifier, yaccuracy = process.train_svc(feature, ylabels)
@@ -119,7 +119,7 @@ class LocationTrainer(Trainer):
                 ], axis=1)
             labels = np.load(self.data_prefix + nation.lower() + self.suffix['1'] + ".npy")
             
-            write_log(f"Training: Training { nation }...", log.info, True, verbose, end="\r")
+            write_log(f"Training: Training { nation }...", log.info, True, verbose)
             self.classifier, self.accuracy = process.train_mrfc(feature, labels)
             write_log(f"Training: Training { nation } complete", log.info, True, verbose)
                 
@@ -153,11 +153,11 @@ class MiningTrainer(Trainer):
                 lists['y'].reshape(-1, 1), 
                 lists['b'].reshape(-1, 1)
                 ], axis=1)
-            write_log(f"Training: Loaded data for { nation }...", log.info, False, verbose)
+            write_log(f"Training: Loaded data for { nation }...", log.info, True, verbose)
             labels = np.load(self.data_prefix + nation.lower() + self.suffix['2'] + ".npy")
-            write_log(f"Training: Loaded results for { nation }...", log.info, False, verbose)
+            write_log(f"Training: Loaded results for { nation }...", log.info, True, verbose)
             
-            write_log(f"Training: Training { nation }...", log.info, True, verbose, end="\r")
+            write_log(f"Training: Training { nation }...", log.info, True, verbose)
             self.classifier, self.accuracy = process.train_mrfc(feature, labels)
             write_log(f"Training: Training { nation } complete", log.info, True, verbose)
                 
