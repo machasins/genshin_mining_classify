@@ -18,12 +18,6 @@ def determine_leyline_positions(features: np.ndarray, nation: str) -> list:
     positions = lt.predict(features)
     return [x + 1 for x in positions]
 
-# Consult location AI to determine what positions the blacksmith's outcrops are
-def determine_location_positions(features: np.ndarray, nation: str) -> list:
-    mt = train.LocationTrainer(nation)
-    positions = mt.predict(features)
-    return [x + 1 for x in positions]
-
 # Consult mining AI to determine what positions the outcrops are
 def determine_mining_positions(features: np.ndarray, nation: str) -> list:
     mt = train.MiningTrainer(nation)
@@ -39,12 +33,6 @@ def classify_image_from_nation(url: str, nation: str) -> list:
     log.debug(f"Consulting { nation } Leyline AI...")
     positions = determine_leyline_positions(features, nation)
     print(f"Determined image displays yellow leyline at position { positions[0] } and blue leyline at position { positions[1] }.")
-    return positions
-
-def classify_location_from_nation(data: np.ndarray, nation:str) -> list:
-    log.debug(f"Consulting { nation } Mining AI...")
-    positions = determine_location_positions(data, nation)
-    print(f"Determined mining outcrops are most likely at: { positions }")
     return positions
 
 def classify_mining_from_nation(data: np.ndarray, nation:str) -> list:
@@ -67,19 +55,6 @@ def main():
     for u, n in zip(urls, t.nations):
         print("--------------------")
         classify_image_from_nation(u, n)
-    print("--------------------")
-    
-    data_l = [
-        [2024, 3, 14, 5, 6], # Mondstadt, [4, 6, 8]
-        [2024, 1, 23, 11, 12], # Liyue, [16, 18, 24, 25, 26]
-        [2024, 3, 4, 1, 2], # Inazuma, [7, 9, 10, 12]
-        [2024, 3, 18, 8, 9], # Sumeru, [1, 5, 31, 32]
-        [2024, 3, 23, 1, 5] # Fontaine, [17, 18, 19, 20]
-        ]
-    
-    for d, n in zip(data_l, t.nations):
-        print("--------------------")
-        classify_location_from_nation(d, n)
     print("--------------------")
     
     data_m = [

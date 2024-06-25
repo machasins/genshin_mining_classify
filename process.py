@@ -9,9 +9,8 @@ from skimage.feature import hog
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.ensemble import RandomForestClassifier
 
-def write_log(message, func, is_extra, verbose, end = "\n"):
+def write_log(message, func, is_extra, verbose):
     if not is_extra or is_extra == verbose:
-        log.StreamHandler().terminator = end
         func(message)
 
 def aquire_image(url):

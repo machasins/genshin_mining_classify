@@ -1,6 +1,6 @@
 {
   "force_data_reset": false,
-  "force_model_reset": true,
+  "force_model_reset": false,
   "feature_suffix": "_image",
   "label_suffix": "_nation",
   "ylabel_suffix": "_y",

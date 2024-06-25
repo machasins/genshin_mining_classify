@@ -13,7 +13,7 @@ from process import write_log
 
 class Input():
     def __init__(self, verbose) -> None:
-        write_log("Input: Reading configs...", log.info, True, verbose, end="\r")
+        write_log("Input: Reading configs...", log.info, True, verbose)
         # Read config information
         data = {}
         with open("config.json") as d:
@@ -28,6 +28,7 @@ class Input():
             with open(self.model_prefix + "config.json", "r") as d:
                 self.data_time = date.fromtimestamp(json.load(d)["Data"])
         except FileNotFoundError:
+            write_log("Input: Initializing model config file...", log.warning, False, verbose)
             with open(self.model_prefix + "config.json", "w") as d:
                 self.data_time = date(0,0,0)
                 json.dump({"Data" : self.data_time.timestamp}, d)
@@ -37,9 +38,11 @@ class Input():
             write_log("Input: Reseting data...", log.info, False, verbose)
             retrieve.DataRetriever(verbose).retrieve_mining_data()
         
-        write_log("Input: Retrieving AI models...", log.info, True, verbose, end="\r")
+        write_log("Input: Retrieving AI models...", log.info, True, verbose)
         self.model_leyline = {}
         self.model_mining = {}
+        if self.force_model_reset or self.data_reset:
+            write_log("Input: Initialing model reset...", log.warning, False, verbose)
         for n in self.nations:
             self.model_leyline[n] = train.LeylineTrainer(n, self.force_model_reset or self.data_reset, verbose)
             self.model_mining[n] = train.MiningTrainer(n, self.force_model_reset or self.data_reset, verbose)
@@ -47,13 +50,13 @@ class Input():
             data = {}
             with open("config.json", 'r') as d:
                 data = json.load(d)
-            data["force_data_reset"] = False
+            data["force_model_reset"] = False
             with open("config.json", 'w') as d:
                 json.dump(data, d, indent=2)
         
-        write_log("Input: Connecting to SQL...", log.info, True, verbose, end="\r")
+        write_log("Input: Connecting to SQL...", log.info, True, verbose)
         self.connect_sql()
-        write_log("Input: Connecting to Sheets...", log.info, True, verbose, end="\r")
+        write_log("Input: Connecting to Sheets...", log.info, True, verbose)
         self.connect_sheet()
         write_log("Input: Ready", log.info, True, verbose)
         
@@ -66,7 +69,7 @@ class Input():
         
     def connect_sheet(self):
         if not isfile("key.json"):
-            write_log("File \"key.json\" does not exist. Please create the file with your Google Sheets credentials.", log.error, False, False)
+            write_log("Input: File \"key.json\" does not exist. Please create the file with your Google Sheets credentials.", log.error, False, False)
             exit(1)
         # Authenticate Google Sheets API
         self.client = gspread.service_account("key.json")
@@ -74,7 +77,7 @@ class Input():
             self.ws = self.client.open_by_key(self.sheet_id)
             self.sheet = self.ws.worksheet("DataEntry")
         except:
-            write_log("The sheet ID in the config is not valid with your account.", log.error, False, False)
+            write_log("Input: The sheet ID in the config is not valid with your account.", log.error, False, False)
             exit(1)
         
         self.leyline_col = self.sheet.find("Leyline", 1).col

@@ -34,15 +34,15 @@ class DataRetriever():
             self.suffix['b'] = self.data["blabel_suffix"]
             
         # Authenticate Google Sheets API
-        write_log("Data: Connecting to Sheets...", log.info, True, verbose, end="\r")
+        write_log("Data: Connecting to Sheets...", log.info, True, verbose)
         if not isfile("key.json"):
-            write_log("File \"key.json\" does not exist. Please create the file with your Google Sheets credentials.", log.error, False, False)
+            write_log("Data: File \"key.json\" does not exist. Please create the file with your Google Sheets credentials.", log.error, False, False)
             exit(1)
         self.client = gspread.service_account("key.json")
         try:
             self.ws = self.client.open_by_key(self.sheet_id)
         except:
-            write_log("The sheet ID in the config is not valid with your account.", log.error, False, False)
+            write_log("Data: The sheet ID in the config is not valid with your account.", log.error, False, False)
             exit(1)
         
         # Read data from files
@@ -54,7 +54,7 @@ class DataRetriever():
         self.ex_data = []
         if not self.force_reset:
             for n in self.nations:
-                write_log(f"Data: Reading { n } data...", log.info, True, self.verbose, end="\r")
+                write_log(f"Data: Reading { n } data...", log.info, True, self.verbose)
                 nation_data = {}
                 for k in list_order:
                     filename = self.prefix + n.lower() + self.suffix[k] + ".npy"
@@ -87,9 +87,9 @@ class DataRetriever():
             # Check if current data is sufficent
             current_amount = len(self.ex_data[i]["d"])
             if data_amount <= current_amount:
-                write_log(f"Data: {n} looks done already.", log.info, True, self.verbose, end='\r')
+                write_log(f"Data: [{n}] Looks done already.", log.info, True, self.verbose)
                 continue
-            write_log(f"Data: Working on {n}...", log.info, True, self.verbose, end='\r')
+            write_log(f"Data: [{n}] Starting data retrieval...", log.info, True, self.verbose)
             
             # Get all date data
             dates = sheet.col_values(1)[2 + current_amount:2 + data_amount]
@@ -123,7 +123,7 @@ class DataRetriever():
             self.ex_data[i]['y'].extend([x[0] for x in leylines])
             self.ex_data[i]['b'].extend([x[1] for x in leylines])
 
-            write_log(f"Data: Writing info for { n }", log.info, True, self.verbose, end="\r")
+            write_log(f"Data: [{n}] Storing normal info...", log.info, True, self.verbose)
 
             # Order to store features and labels
             list_order = ['d', '1', '2', 'y', 'b']
@@ -131,6 +131,7 @@ class DataRetriever():
             for l in list_order:
                 np.save(self.prefix + n.lower() + self.suffix[l] + ".npy", np.array(self.ex_data[i][l]))
 
+            write_log(f"Data: [{n}] Starting image processing...", log.info, True, self.verbose)
             # Iterate through each image URL
             for url in progress.tqdm(image_urls, desc=n + " Image Progress", total=len(image_urls)):
                 # Get image features from url
@@ -138,9 +139,9 @@ class DataRetriever():
             # Save features to .npy file
             np.save(self.prefix + n.lower() + self.suffix['f'] + ".npy", np.array(self.ex_data[i]['f']))
                 
-            write_log(f"Data: { n } completed.", log.info, True, self.verbose)
+            write_log(f"Data: [{n}] Data retrieved.", log.info, True, self.verbose)
             
-        write_log("Data: Features and labels saved successfully.", log.info, False, self.verbose)
+        write_log("Data: Updating timestamp...", log.info, False, self.verbose)
 
         # Write the timestamp for when data was updated
         data = {}
@@ -150,7 +151,7 @@ class DataRetriever():
         with open(self.model_prefix + "config.json", "w") as config:
             json.dump(data, config, indent=2)
             
-        write_log("Data: Timestamp updated.", log.info, False, self.verbose)
+        write_log("Data: Features and labels saved successfully.", log.info, False, self.verbose)
 
 # Main function
 def main():

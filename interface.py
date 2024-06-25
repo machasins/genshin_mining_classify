@@ -16,14 +16,14 @@ from process import write_log
 
 class Interface():
     def __init__(self, verbose) -> None:
-        write_log("Interface: Initializing input...", log.info, True, verbose, end="\r")
+        write_log("Interface: Initializing input...", log.info, True, verbose)
         self.input = input.Input(verbose)
         
-        write_log("Interface: Reading config...", log.info, True, verbose, end="\r")
+        write_log("Interface: Reading config...", log.info, True, verbose)
         self.read_config()
-        write_log("Interface: Initializing structure...", log.info, True, verbose, end="\r")
+        write_log("Interface: Initializing structure...", log.info, True, verbose)
         self.define_inital()
-        write_log("Interface: Initializing data...", log.info, True, verbose, end="\r")
+        write_log("Interface: Initializing data...", log.info, True, verbose)
         self.define_data()
         write_log("Interface: Ready.", log.info, False, verbose)
     
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Leyline Classifier",
                                   description="Classifies Leylines and Mining Outcrops with the use of AI")
     parser.add_argument('-v', '--verbose', dest="verbose", action="store_const", default=False, const=True, help="whether console output should be verbose")
-    parser.add_argument('-o', '--output', dest="output", default="warning", help="what type of output should be printed", type=str, choices=["info", "warning", "error"])
+    parser.add_argument('-o', '--output', dest="output", default="warning", help="what type of output should be printed", type=str, choices=["debug", "info", "warning", "error"])
     parser.add_argument('-f', '--fileOutput', dest="file", default=None, help="what file the output should be printed to", type=str)
     arg = parser.parse_args()
     log.basicConfig(format="%(message)s", level=arg.output.upper() if not arg.verbose else "INFO", filename=arg.file)
