@@ -1,14 +1,11 @@
 import json
-import glob
 import numpy as np
 import logging as log
 
-from os import remove
 from os.path import isfile
 from joblib import dump, load
 from datetime import datetime as date
 
-from retrieve import DataRetriever
 import process
 from process import write_log
 

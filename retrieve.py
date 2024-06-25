@@ -9,7 +9,6 @@ import tqdm as progress
 from os import remove
 from os.path import isfile
 from datetime import datetime as date
-from oauth2client.service_account import ServiceAccountCredentials
 
 from process import process_features
 from process import write_log
