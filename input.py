@@ -15,6 +15,7 @@ class Input():
     def __init__(self, verbose) -> None:
         write_log("Input: Reading configs...", log.info, True, verbose, end="\r")
         # Read config information
+        data = {}
         with open("config.json") as d:
             data = json.load(d)
             self.sheet_id = data["sheet"]
@@ -42,6 +43,13 @@ class Input():
         for n in self.nations:
             self.model_leyline[n] = train.LeylineTrainer(n, self.force_model_reset or self.data_reset, verbose)
             self.model_mining[n] = train.MiningTrainer(n, self.force_model_reset or self.data_reset, verbose)
+        if self.force_model_reset:
+            data = {}
+            with open("config.json", 'r') as d:
+                data = json.load(d)
+            data["force_data_reset"] = False
+            with open("config.json", 'w') as d:
+                json.dump(data, d, indent=2)
         
         write_log("Input: Connecting to SQL...", log.info, True, verbose, end="\r")
         self.connect_sql()

@@ -73,7 +73,7 @@ class LeylineTrainer(Trainer):
             }
             self.accuracy = self.leyline["accuracy"][nation] if self.leyline["accuracy"][nation] is list else [ -1, -1 ]
         else:
-            write_log(f"Training: Old model out of date, training new model for { nation }...", log.warning, False, verbose)
+            write_log(f"Training: Old leyline model out of date, training new model for { nation }...", log.warning, False, verbose)
             feature = np.load(self.data_prefix + nation.lower() + self.suffix["f"] + ".npy")
             write_log(f"Training: Loaded data for { nation }...", log.info, False, verbose)
             ylabels = np.load(self.data_prefix + nation.lower() + self.suffix["y"] + ".npy")
@@ -109,7 +109,7 @@ class LocationTrainer(Trainer):
             self.classifier = load(self.model_prefix + nation + "_location.joblib")
             self.accuracy = self.location["accuracy"][nation]
         else:
-            write_log(f"Training: Old model out of date, training new model for { nation }...", log.warning, False, verbose)
+            write_log(f"Training: Old location model out of date, training new model for { nation }...", log.warning, False, verbose)
             self.list_order = ['d', 'y', 'b']
             lists = { k : np.load(self.data_prefix + nation.lower() + self.suffix[k] + ".npy") for k in self.list_order }
             feature = np.concatenate([
@@ -144,7 +144,7 @@ class MiningTrainer(Trainer):
             self.classifier = load(self.model_prefix + nation + "_mining.joblib")
             self.accuracy = self.mining["accuracy"][nation]
         else:
-            write_log(f"Training: Old model out of date, training new model for { nation }...", log.warning, False, verbose)
+            write_log(f"Training: Old mining model out of date, training new model for { nation }...", log.warning, False, verbose)
             self.list_order = ['d', '1', 'y', 'b']
             lists = { k : np.load(self.data_prefix + nation.lower() + self.suffix[k] + ".npy") for k in self.list_order }
             feature = np.concatenate([
