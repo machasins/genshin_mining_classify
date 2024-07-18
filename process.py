@@ -1,17 +1,12 @@
 import cv2
 import requests
 import numpy as np
-import logging as log
 
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from skimage.feature import hog
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.ensemble import RandomForestClassifier
-
-def write_log(message, func, is_extra, verbose):
-    if not is_extra or is_extra == verbose:
-        func(message)
 
 def aquire_image(url):
     response = requests.get(url, headers = {'User-agent': 'machasins'})
@@ -26,7 +21,7 @@ def aquire_image(url):
 # Function to preprocess the input image
 def preprocess_image(image):
     # Resize image to a uniform size (e.g., 300x300 pixels)
-    resized_image = cv2.resize(image, (300, 300))
+    resized_image = cv2.resize(image, (150, 150))
     # Convert to grayscale
     gray_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
     # Return preprocessed image
@@ -49,10 +44,14 @@ def process_features(url):
     features = extract_features(altered_image)
     return features
 
+# Split data into training and testing
+def test_split(features, labels) -> list:
+    return train_test_split(features, labels, test_size=0.2, random_state=42)
+
 # Function to train the classifier
 def train_svc(features, labels):
     # Split data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = test_split(features, labels)
     # Initialize and train the classifier (e.g., SVM)
     classifier = SVC(kernel='linear')
     classifier.fit(X_train, y_train)
@@ -64,7 +63,7 @@ def train_svc(features, labels):
 # Function to train the classifier
 def train_mrfc(features, labels):
     # Split data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = test_split(features, labels)
     # Initialize and train the classifier (e.g., SVM)
     classifier = MultiOutputRegressor(RandomForestClassifier(n_estimators=100, random_state=42))
     classifier.fit(X_train, y_train)

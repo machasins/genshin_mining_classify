@@ -1,7 +1,5 @@
 import re
-import json
 import glob
-import gspread
 import numpy as np
 import logging as log
 import tqdm as progress
@@ -10,40 +8,12 @@ from os import remove
 from os.path import isfile
 from datetime import datetime as date
 
+import config
 from process import process_features
-from process import write_log
 
 class DataRetriever():
-    def __init__(self, verbose):
-        self.verbose = verbose
-        # Read config file
-        with open("config.json") as d:
-            self.data = json.load(d)
-            self.nations = self.data["nations"]
-            self.sheet_id = self.data["sheet"]
-            self.force_reset = self.data["force_data_reset"]
-            self.prefix = self.data["data_prefix"]
-            self.model_prefix = self.data["model_prefix"]
-            self.suffix = {}
-            self.suffix['l'] = self.data["label_suffix"]
-            self.suffix['d'] = self.data["date_suffix"]
-            self.suffix['1'] = self.data["ore1_suffix"]
-            self.suffix['2'] = self.data["ore2_suffix"]
-            self.suffix['f'] = self.data["feature_suffix"]
-            self.suffix['y'] = self.data["ylabel_suffix"]
-            self.suffix['b'] = self.data["blabel_suffix"]
-            
-        # Authenticate Google Sheets API
-        write_log("Data: Connecting to Sheets...", log.info, True, verbose)
-        if not isfile("key.json"):
-            write_log("Data: File \"key.json\" does not exist. Please create the file with your Google Sheets credentials.", log.error, False, False)
-            exit(1)
-        self.client = gspread.service_account("key.json")
-        try:
-            self.ws = self.client.open_by_key(self.sheet_id)
-        except:
-            write_log("Data: The sheet ID in the config is not valid with your account.", log.error, False, False)
-            exit(1)
+    def __init__(self, cfg:config.cfg):
+        self.cfg = cfg
         
         # Read data from files
         self.read_data()
@@ -52,33 +22,31 @@ class DataRetriever():
         list_order = ['d', '1', '2', 'f', 'y', 'b']
         
         self.ex_data = []
-        if not self.force_reset:
-            for n in self.nations:
-                write_log(f"Data: Reading { n } data...", log.info, True, self.verbose)
+        if not self.cfg.force_data_reset:
+            for n in self.cfg.nations:
+                self.cfg.write_log(f"Data: Reading { n } data...", log.info)
                 nation_data = {}
                 for k in list_order:
-                    filename = self.prefix + n.lower() + self.suffix[k] + ".npy"
+                    filename = self.cfg.data_prefix + n.lower() + self.cfg.suffix[k] + ".npy"
                     nation_data[k] = np.array(np.load(filename)).tolist() if isfile(filename) else []
                 self.ex_data.append(nation_data)
-            write_log("Data: Reading nation data complete.", log.info, True, self.verbose)
+            self.cfg.write_log("Data: Reading nation data complete.", log.info)
         else:
-            write_log("Data: Force reset initiated...", log.warning, False, self.verbose)
-            self.ex_data = [{ k : [] for k in list_order } for _ in self.nations]
+            self.cfg.write_log("Data: Force reset initiated...", log.warning, True)
+            self.ex_data = [{ k : [] for k in list_order } for _ in self.cfg.nations]
             
-            files = glob.glob(self.prefix + "*")
+            files = glob.glob(self.cfg.data_prefix + "*")
             for f in files:
                 remove(f)
 
-            with open("config.json", 'w') as config:
-                self.data["force_data_reset"] = False
-                json.dump(self.data, config, indent=2)
+            self.cfg.write("force_data_reset", False)
     
     def retrieve_mining_data(self):
-        write_log("Data: Constructing nation data...", log.info, True, self.verbose)
-        for i, n in enumerate(self.nations):
+        self.cfg.write_log("Data: Constructing nation data...", log.info)
+        for i, n in enumerate(self.cfg.nations):
                 
             # Open the Google Sheets document
-            sheet = self.ws.worksheet(n + " Data")
+            sheet = self.cfg.ws.worksheet(n + " Data")
             
             # Find column for leyline screenshots
             leyline_col = sheet.find("Leyline", 1).col
@@ -87,9 +55,9 @@ class DataRetriever():
             # Check if current data is sufficent
             current_amount = len(self.ex_data[i]["d"])
             if data_amount <= current_amount:
-                write_log(f"Data: [{n}] Looks done already.", log.info, True, self.verbose)
+                self.cfg.write_log(f"Data: [{n}] Looks done already.", log.info)
                 continue
-            write_log(f"Data: [{n}] Starting data retrieval...", log.info, True, self.verbose)
+            self.cfg.write_log(f"Data: [{n}] Starting data retrieval...", log.info)
             
             # Get all date data
             dates = sheet.col_values(1)[2 + current_amount:2 + data_amount]
@@ -123,35 +91,30 @@ class DataRetriever():
             self.ex_data[i]['y'].extend([x[0] for x in leylines])
             self.ex_data[i]['b'].extend([x[1] for x in leylines])
 
-            write_log(f"Data: [{n}] Storing normal info...", log.info, True, self.verbose)
+            self.cfg.write_log(f"Data: [{n}] Storing normal info...", log.info)
 
             # Order to store features and labels
             list_order = ['d', '1', '2', 'y', 'b']
             # Save features and labels to .npy files
             for l in list_order:
-                np.save(self.prefix + n.lower() + self.suffix[l] + ".npy", np.array(self.ex_data[i][l]))
+                np.save(self.cfg.data_prefix + n.lower() + self.cfg.suffix[l] + ".npy", np.array(self.ex_data[i][l]))
 
-            write_log(f"Data: [{n}] Starting image processing...", log.info, True, self.verbose)
+            self.cfg.write_log(f"Data: [{n}] Starting image processing...", log.info)
             # Iterate through each image URL
             for url in progress.tqdm(image_urls, desc=n + " Image Progress", total=len(image_urls)):
                 # Get image features from url
                 self.ex_data[i]['f'].append(process_features(url))
             # Save features to .npy file
-            np.save(self.prefix + n.lower() + self.suffix['f'] + ".npy", np.array(self.ex_data[i]['f']))
+            np.save(self.cfg.data_prefix + n.lower() + self.cfg.suffix['f'] + ".npy", np.array(self.ex_data[i]['f']))
                 
-            write_log(f"Data: [{n}] Data retrieved.", log.info, True, self.verbose)
+            self.cfg.write_log(f"Data: [{n}] Data retrieved.", log.info)
             
-        write_log("Data: Updating timestamp...", log.info, False, self.verbose)
+        self.cfg.write_log("Data: Updating timestamp...", log.info, True)
 
         # Write the timestamp for when data was updated
-        data = {}
-        with open(self.model_prefix + "config.json", "r") as config:
-            data = json.load(config)
-        data["Data"] = date.now().timestamp()
-        with open(self.model_prefix + "config.json", "w") as config:
-            json.dump(data, config, indent=2)
+        self.cfg.write_model("Data", date.now().timestamp)
             
-        write_log("Data: Features and labels saved successfully.", log.info, False, self.verbose)
+        self.cfg.write_log("Data: Features and labels saved successfully.", log.info, True)
 
 # Main function
 def main():

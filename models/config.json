@@ -1,48 +1,13 @@
 {
-  "Mondstadt_leyline": 1713817470.807694,
-  "Liyue_leyline": 1713817601.372527,
-  "Inazuma_leyline": 1713817637.339906,
-  "Sumeru_leyline": 1713817667.436437,
-  "Fontaine_leyline": 1713817674.905403,
-  "Mondstadt_location": 1713817675.717142,
-  "Liyue_location": 1713817677.092456,
-  "Inazuma_location": 1713817678.107389,
-  "Sumeru_location": 1713817678.922878,
-  "Fontaine_location": 1713817679.685442,
-  "Mondstadt_mining": 1713817680.318018,
-  "Liyue_mining": 1713817681.371975,
-  "Inazuma_mining": 1713817682.399909,
-  "Sumeru_mining": 1713817683.266697,
-  "Fontaine_mining": 1713817683.985351,
-  "Data": 1719272331.748353,
-  "Mondstadt_leyline_accuracy": [
-    0.9338842975206612,
-    0.9380165289256198
-  ],
-  "Liyue_leyline_accuracy": [
-    0.9008264462809917,
-    0.9049586776859504
-  ],
-  "Inazuma_leyline_accuracy": [
-    0.9953271028037384,
-    0.9953271028037384
-  ],
-  "Sumeru_leyline_accuracy": [
-    0.9925373134328358,
-    0.9925373134328358
-  ],
-  "Fontaine_leyline_accuracy": [
-    0.8888888888888888,
-    0.8888888888888888
-  ],
-  "Mondstadt_location_accuracy": 0.894205594007594,
-  "Liyue_location_accuracy": 0.8716539202932536,
-  "Inazuma_location_accuracy": 0.9852632392749656,
-  "Sumeru_location_accuracy": 0.38115570154611017,
-  "Fontaine_location_accuracy": 0.9083608868408195,
-  "Mondstadt_mining_accuracy": 0.9560119901590781,
-  "Liyue_mining_accuracy": 0.9745941702658227,
-  "Inazuma_mining_accuracy": 0.9624200800484012,
-  "Sumeru_mining_accuracy": 0.9751136778389096,
-  "Fontaine_mining_accuracy": 0.8096059519910572
+  "Data": 1721244796.393536,
+  "Mondstadt_leyline_accuracy": 0.9806162592697882,
+  "Liyue_leyline_accuracy": 0.7228724406124304,
+  "Inazuma_leyline_accuracy": 0.9738109915832778,
+  "Sumeru_leyline_accuracy": 0.9778412986980562,
+  "Fontaine_leyline_accuracy": 0.9647544874166922,
+  "Mondstadt_mining_accuracy": 0.9444244262812398,
+  "Liyue_mining_accuracy": 0.9755154333678305,
+  "Inazuma_mining_accuracy": 0.964458679886739,
+  "Sumeru_mining_accuracy": 0.9809645626948275,
+  "Fontaine_mining_accuracy": 0.7950111800133435
 }

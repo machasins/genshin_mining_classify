@@ -1,4 +1,3 @@
-import json
 import numpy as np
 import logging as log
 
@@ -6,42 +5,23 @@ from os.path import isfile
 from joblib import dump, load
 from datetime import datetime as date
 
+import config
 import process
-from process import write_log
 
 class Trainer():
-    def __init__(self, do_reset, verbose):
-        # Read normal config
-        write_log("Training: Reading normal config...", log.info, True, verbose)
-        with open("config.json") as config:
-            self.data = json.load(config)
-            self.nations = self.data["nations"]
-            self.data_prefix = self.data["data_prefix"]
-            self.model_prefix = self.data["model_prefix"]
-            self.data_days = self.data["min_data_days"]
-            self.suffix = {}
-            self.suffix['l'] = self.data["label_suffix"]
-            self.suffix['d'] = self.data["date_suffix"]
-            self.suffix['1'] = self.data["ore1_suffix"]
-            self.suffix['2'] = self.data["ore2_suffix"]
-            self.suffix['f'] = self.data["feature_suffix"]
-            self.suffix['y'] = self.data["ylabel_suffix"]
-            self.suffix['b'] = self.data["blabel_suffix"]
+    def __init__(self, do_reset, cfg:config.cfg):
+        self.cfg = cfg
         # Read model metadata
-        write_log("Training: Reading model config...", log.info, True, verbose)
-        with open(self.model_prefix + "config.json", "r") as config:
-            self.model_data = json.load(config)
-                        
-            self.model = {}
-            categories = ["leyline", "location", "mining"]
-            attributes = ["file", "accuracy"]
-            for c in categories:
-                self.model[c] = {}
-                self.model[c][attributes[0]] = {}
-                self.model[c][attributes[1]] = {}
-                for n in self.nations:
-                    self.model[c][attributes[0]][n] = isfile(self.model_prefix + n.lower() + "_" + c + ".joblib")
-                    self.model[c][attributes[1]][n] = self.model_data[n + "_" + c + "_accuracy"] if n + "_" + c + "_accuracy" in self.model_data else -1
+        self.model = {}
+        categories = ["leyline", "mining"]
+        attributes = ["file", "accuracy"]
+        for c in categories:
+            self.model[c] = {}
+            self.model[c][attributes[0]] = {}
+            self.model[c][attributes[1]] = {}
+            for n in self.cfg.nations:
+                self.model[c][attributes[0]][n] = isfile(self.cfg.model_prefix + n.lower() + "_" + c + ".joblib")
+                self.model[c][attributes[1]][n] = self.cfg.accuracy[c][n] or -1
         self.force_reset = do_reset
     
     def predict(self, features):
@@ -49,87 +29,77 @@ class Trainer():
     
     # Update timestamp for config
     def update_timestamp(self, nation, suffix):
-        with open(self.model_prefix + "config.json", 'w') as config:
-            self.model_data[nation + suffix] = date.now().timestamp()
-            json.dump(self.model_data, config, indent=2)
+        self.cfg.write_model(nation + suffix, date.now().timestamp())
     
     # Update AI accuracy for config
     def update_accuracy(self, nation, suffix, accuracy):
-        with open(self.model_prefix + "config.json", 'w') as config:
-            self.model_data[nation + suffix + "_accuracy"] = accuracy
-            json.dump(self.model_data, config, indent=2)
+        self.cfg.write_model(nation + suffix + "_accuracy", accuracy)
     
 class LeylineTrainer(Trainer):
-    def __init__(self, nation, do_reset, verbose):
-        super().__init__(do_reset, verbose)
+    def __init__(self, nation, do_reset, cfg):
+        super().__init__(do_reset, cfg)
         
         self.leyline = self.model["leyline"]
         
-        if isfile(self.model_prefix + nation + "_y.joblib") and not self.force_reset:
-            write_log(f"Leyline: [{ nation }] Loading existing model...", log.info, True, verbose)
-            self.classifier = {
-                "y" : load(self.model_prefix + nation + "_y.joblib"),
-                "b" : load(self.model_prefix + nation + "_b.joblib")
-            }
-            self.accuracy = self.leyline["accuracy"][nation] if self.leyline["accuracy"][nation] is list else [ -1, -1 ]
+        if self.leyline["file"][nation] and not self.force_reset:
+            self.cfg.write_log(f"Leyline: [{ nation }] Loading existing model...", log.info)
+            self.classifier = load(self.cfg.model_prefix + nation + "_leyline.joblib")
+            self.accuracy = self.leyline["accuracy"][nation]
         else:
-            write_log(f"Leyline: [{ nation }] Old leyline model out of date, training new model...", log.warning, False, verbose)
-            feature = np.load(self.data_prefix + nation.lower() + self.suffix["f"] + ".npy")
-            write_log(f"Leyline: [{ nation }] Loaded data...", log.info, True, verbose)
-            ylabels = np.load(self.data_prefix + nation.lower() + self.suffix["y"] + ".npy")
-            blabels = np.load(self.data_prefix + nation.lower() + self.suffix["b"] + ".npy")
-            write_log(f"Leyline: [{ nation }] Loaded results...", log.info, True, verbose)
+            self.cfg.write_log(f"Leyline: [{ nation }] Old leyline model out of date, training new model...", log.warning, True)
+            feature = np.load(self.cfg.data_prefix + nation.lower() + self.cfg.suffix["f"] + ".npy")
+            self.cfg.write_log(f"Leyline: [{ nation }] Loaded data...", log.info)
+            labels = np.stack((np.load(self.cfg.data_prefix + nation.lower() + self.cfg.suffix["y"] + ".npy"), 
+                               np.load(self.cfg.data_prefix + nation.lower() + self.cfg.suffix["b"] + ".npy")), 
+                               axis=-1)
+            self.cfg.write_log(f"Leyline: [{ nation }] Loaded results...", log.info)
             
-            write_log(f"Leyline: [{ nation }] Training...", log.info, True, verbose)
-            yclassifier, yaccuracy = process.train_svc(feature, ylabels)
-            bclassifier, baccuracy = process.train_svc(feature, blabels)
-            self.classifier = { "y" : yclassifier, "b" : bclassifier }
-            self.accuracy = [ yaccuracy, baccuracy ]
-            write_log(f"Leyline: [{ nation }] Training complete", log.info, True, verbose)
+            self.cfg.write_log(f"Leyline: [{ nation }] Training...", log.info)
+            self.classifier, self.accuracy = process.train_mrfc(feature, labels)
+            self.cfg.write_log(f"Leyline: [{ nation }] Training complete", log.info)
                 
-            dump(self.classifier["y"], self.model_prefix + nation.lower() + "_y.joblib")
-            dump(self.classifier["b"], self.model_prefix + nation.lower() + "_b.joblib")
-            self.update_accuracy(nation, "_leyline", [yaccuracy, baccuracy])
-        write_log("Leyline: [" + nation + "] Loaded Leyline AI with {0:.2%} yellow accuracy and {1:.2%} blue accuracy.".format(self.accuracy[0], self.accuracy[1]), log.info, True, verbose)
+            dump(self.classifier, self.cfg.model_prefix + nation.lower() + "_leyline.joblib")
+            self.update_accuracy(nation, "_leyline", self.accuracy)
+        self.cfg.write_log("Leyline: [" + nation + "] Loaded Leyline AI with {0:.2%} accuracy.".format(self.accuracy), log.info)
 
     # Function to predict Leyline location in a given screenshot
     def predict(self, features):
         # Use the trained classifier to predict the Leyline location
-        predicted_location = [self.classifier["y"].predict(features.reshape(1,-1))[0], self.classifier["b"].predict(features.reshape(1,-1))[0]]
+        predicted_location = self.classifier.predict(features.reshape(1,-1))[0]
         # Return the predicted location
         return predicted_location
 
 class MiningTrainer(Trainer):
-    def __init__(self, nation, do_reset, verbose):
-        super().__init__(do_reset, verbose)
+    def __init__(self, nation, do_reset, cfg):
+        super().__init__(do_reset, cfg)
         
         self.mining = self.model["mining"]
         
         if self.mining["file"][nation] and not self.force_reset:
-            write_log(f"Mining: [{ nation }] Loading existing model...", log.info, True, verbose)
-            self.classifier = load(self.model_prefix + nation + "_mining.joblib")
+            self.cfg.write_log(f"Mining: [{ nation }] Loading existing model...", log.info)
+            self.classifier = load(self.cfg.model_prefix + nation + "_mining.joblib")
             self.accuracy = self.mining["accuracy"][nation]
         else:
-            write_log(f"Mining: [{ nation }] Old mining model out of date, training new model...", log.warning, False, verbose)
+            self.cfg.write_log(f"Mining: [{ nation }] Old mining model out of date, training new model...", log.warning, False)
             self.list_order = ['d', '1', 'y', 'b']
-            lists = { k : np.load(self.data_prefix + nation.lower() + self.suffix[k] + ".npy") for k in self.list_order }
+            lists = { k : np.load(self.cfg.data_prefix + nation.lower() + self.cfg.suffix[k] + ".npy") for k in self.list_order }
             feature = np.concatenate([
                 lists['d'], 
                 lists['1'], 
                 lists['y'].reshape(-1, 1), 
                 lists['b'].reshape(-1, 1)
                 ], axis=1)
-            write_log(f"Mining: [{ nation }] Loaded data...", log.info, True, verbose)
-            labels = np.load(self.data_prefix + nation.lower() + self.suffix['2'] + ".npy")
-            write_log(f"Mining: [{ nation }] Loaded results...", log.info, True, verbose)
+            self.cfg.write_log(f"Mining: [{ nation }] Loaded data...", log.info)
+            labels = np.load(self.cfg.data_prefix + nation.lower() + self.cfg.suffix['2'] + ".npy")
+            self.cfg.write_log(f"Mining: [{ nation }] Loaded results...", log.info)
             
-            write_log(f"Mining: [{ nation }] Training...", log.info, True, verbose)
+            self.cfg.write_log(f"Mining: [{ nation }] Training...", log.info)
             self.classifier, self.accuracy = process.train_mrfc(feature, labels)
-            write_log(f"Mining: [{ nation }] Training complete", log.info, True, verbose)
+            self.cfg.write_log(f"Mining: [{ nation }] Training complete", log.info)
                 
-            dump(self.classifier, self.model_prefix + nation.lower() + "_mining.joblib")
+            dump(self.classifier, self.cfg.model_prefix + nation.lower() + "_mining.joblib")
             self.update_accuracy(nation, "_mining", self.accuracy)
-        write_log("Mining: [" + nation + "] Loaded Mining AI with {0:.2%} accuracy.".format(self.accuracy), log.info, True, verbose)
+        self.cfg.write_log("Mining: [" + nation + "] Loaded Mining AI with {0:.2%} accuracy.".format(self.accuracy), log.info)
 
     # Function to predict Leyline location in a given screenshot
     def predict(self, features):
