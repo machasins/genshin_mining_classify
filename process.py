@@ -21,7 +21,7 @@ def aquire_image(url):
 # Function to preprocess the input image
 def preprocess_image(image):
     # Resize image to a uniform size (e.g., 300x300 pixels)
-    resized_image = cv2.resize(image, (150, 150))
+    resized_image = cv2.resize(image, (100, 100))
     # Convert to grayscale
     gray_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
     # Return preprocessed image
@@ -65,7 +65,7 @@ def train_mrfc(features, labels):
     # Split data into training and testing sets
     X_train, X_test, y_train, y_test = test_split(features, labels)
     # Initialize and train the classifier (e.g., SVM)
-    classifier = MultiOutputRegressor(RandomForestClassifier(n_estimators=100, random_state=42))
+    classifier = MultiOutputRegressor(RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=2))
     classifier.fit(X_train, y_train)
     # Calculate accuracy
     accuracy = classifier.score(X_test, y_test)

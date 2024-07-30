@@ -9,29 +9,35 @@ from functools import partial
 import input
 import config
 import process
+import error
 
 class Interface():
     def __init__(self, cfg:config.cfg) -> None:        
         cfg.write_log("Interface: Initializing input...", log.info)
         self.cfg = cfg
         self.input = input.Input(cfg)
-        
+            
         cfg.write_log("Interface: Initializing structure...", log.info)
         self.define_inital()
-        cfg.write_log("Interface: Initializing data...", log.info)
-        self.define_data()
-        cfg.write_log("Interface: Ready.", log.info, True)
         
-        if cfg.arg.autofill:
-            cfg.write_log("Interface: Autofill started...", log.info)
-            self.autofill()
+        if cfg.arg.errorcheck:
+            cfg.write_log("Interface: Error checking mode started...", log.warning, True)
+            self.error = error.ErrorCheck(self)
+        else:
+            cfg.write_log("Interface: Initializing data...", log.info)
+            self.define_data()
+            cfg.write_log("Interface: Ready.", log.info, True)
+            
+            if cfg.arg.autofill:
+                cfg.write_log("Interface: Autofill started...", log.info)
+                self.autofill()
     
     # Define the initial window variables
     def define_inital(self):
         # Root setup
         self.root = Tk()
         self.root.title("Genshin Impact Leyline Classifier")
-        self.root.geometry(str(800) + "x" + str(200))
+        self.root.geometry(str(800) + "x" + str(300))
         self.root.resizable(FALSE,FALSE)
         self.root.lift()
     

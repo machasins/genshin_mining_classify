@@ -19,21 +19,20 @@ class DataRetriever():
         self.read_data()
     
     def read_data(self):
-        list_order = ['d', '1', '2', 'f', 'y', 'b']
         
         self.ex_data = []
         if not self.cfg.force_data_reset:
             for n in self.cfg.nations:
                 self.cfg.write_log(f"Data: Reading { n } data...", log.info)
                 nation_data = {}
-                for k in list_order:
+                for k in self.cfg.suffix_names.keys():
                     filename = self.cfg.data_prefix + n.lower() + self.cfg.suffix[k] + ".npy"
                     nation_data[k] = np.array(np.load(filename)).tolist() if isfile(filename) else []
                 self.ex_data.append(nation_data)
             self.cfg.write_log("Data: Reading nation data complete.", log.info)
         else:
             self.cfg.write_log("Data: Force reset initiated...", log.warning, True)
-            self.ex_data = [{ k : [] for k in list_order } for _ in self.cfg.nations]
+            self.ex_data = [{ k : [] for k in self.cfg.suffix_names.keys() } for _ in self.cfg.nations]
             
             files = glob.glob(self.cfg.data_prefix + "*")
             for f in files:
@@ -77,6 +76,7 @@ class DataRetriever():
             
             # Get all image URLs
             image_urls = sheet.col_values(leyline_col)[2 + current_amount: 2 + data_amount]
+            self.ex_data[i]['u'].extend(image_urls)
             
             # Find column for end of sheet data
             end_col = sheet.find("2", 1).col
@@ -93,11 +93,10 @@ class DataRetriever():
 
             self.cfg.write_log(f"Data: [{n}] Storing normal info...", log.info)
 
-            # Order to store features and labels
-            list_order = ['d', '1', '2', 'y', 'b']
             # Save features and labels to .npy files
-            for l in list_order:
-                np.save(self.cfg.data_prefix + n.lower() + self.cfg.suffix[l] + ".npy", np.array(self.ex_data[i][l]))
+            for l in self.cfg.suffix_names.keys():
+                if l != 'f':
+                    np.save(self.cfg.data_prefix + n.lower() + self.cfg.suffix[l] + ".npy", np.array(self.ex_data[i][l]))
 
             self.cfg.write_log(f"Data: [{n}] Starting image processing...", log.info)
             # Iterate through each image URL
@@ -112,7 +111,7 @@ class DataRetriever():
         self.cfg.write_log("Data: Updating timestamp...", log.info, True)
 
         # Write the timestamp for when data was updated
-        self.cfg.write_model("Data", date.now().timestamp)
+        self.cfg.write_model("Data", date.now().timestamp())
             
         self.cfg.write_log("Data: Features and labels saved successfully.", log.info, True)
 

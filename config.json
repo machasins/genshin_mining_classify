@@ -2,7 +2,7 @@
   "force_data_reset": false,
   "force_model_reset": false,
   "feature_suffix": "_image",
-  "label_suffix": "_nation",
+  "url_suffix": "_url",
   "ylabel_suffix": "_y",
   "blabel_suffix": "_b",
   "ore1_suffix": "_1",

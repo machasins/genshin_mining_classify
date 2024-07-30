@@ -7,11 +7,11 @@ from datetime import datetime as date
 
 class cfg:
     suffix_names = {
-        'l' : "label", 
         'd' : "date",
         '1' : "ore1",
         '2' : "ore2",
         'f' : "feature",
+        'u' : "url",
         'y' : "ylabel",
         'b' : "blabel"
         }
@@ -35,6 +35,7 @@ class cfg:
         parser.add_argument('-u', '--update', action="store_const", default=False, const=True, help="whether to force update stored data")
         parser.add_argument('-m', '--model', action="store_const", default=False, const=True, help="whether to force the model to be trained again")
         parser.add_argument('-a', '--autofill', action="store_const", default=False, const=True, help="whether the program should run the autofill command at startup")
+        parser.add_argument('-e', '--errorcheck', action="store_const", default=False, const=True, help="whether the program should test the data for errors")
         self.arg = parser.parse_args()
         log.basicConfig(format="%(message)s", level=self.arg.output.upper() if not self.arg.verbose else "INFO", filename=self.arg.file)
     
