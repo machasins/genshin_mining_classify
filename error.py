@@ -30,6 +30,7 @@ class ErrorCheck():
         self.var = {}
         self.probs = {}
         self.order = {}
+        self.unique_leyline_pos = {}
         self.leyline_max = {}
         self.nation_data = {}
         
@@ -46,6 +47,7 @@ class ErrorCheck():
             model = self.face.input.model_leyline[n].classifier
             self.probs[n] = np.min(np.array([np.max(estimator.predict_proba(X_test), axis=1) for estimator in model.estimators_]).T, axis=1)
             self.order[n] = np.argsort(self.probs[n])
+            self.unique_leyline_pos[n] = np.unique(np.array([self.nation_data[n]['y'], self.nation_data[n]['b']]), axis=1).T
             # Get the leyline number for the region
             self.leyline_max[n] = np.max(np.concatenate([self.nation_data[n]['y'], self.nation_data[n]['b']]))
         
@@ -141,7 +143,7 @@ class ErrorCheck():
         def get_image():
             response = requests.get(url, headers = {'User-agent': 'machasins'})
             image_data = Image.open(BytesIO(response.content))
-            image_size = (int(image_data.size[0] * 200.0 / max(image_data.size)), int(image_data.size[1] * 200.0 / max(image_data.size)))
+            image_size = (int(image_data.size[0] * 250.0 / max(image_data.size)), int(image_data.size[1] * 250.0 / max(image_data.size)))
             new_image = ImageTk.PhotoImage(image_data.resize(image_size))
             self.leyline_im.configure(image=new_image)
             self.leyline_im.image = new_image

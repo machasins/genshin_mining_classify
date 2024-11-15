@@ -75,8 +75,8 @@ class cfg:
                 json.dump(self.model_data, d)
         self.timestamp = self.model_data["Data"]
         self.accuracy = {}
-        self.accuracy["leyline"] = { n : self.model_data[n + "_leyline_accuracy"] for n in self.nations }
-        self.accuracy["mining"] = { n : self.model_data[n + "_mining_accuracy"] for n in self.nations }
+        self.accuracy["leyline"] = { n : self.model_data[n + "_leyline_accuracy"] if n + "_leyline_accuracy" in self.model_data else 0 for n in self.nations }
+        self.accuracy["mining"] = { n : self.model_data[n + "_mining_accuracy"] if n + "_mining_accuracy" in self.model_data else 0 for n in self.nations }
     
     def write(self, index, value):
         self.write_log(f"Config: Writing value { value } to { index } in normal config...", log.debug)
