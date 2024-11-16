@@ -23,6 +23,7 @@ class Trainer():
                 self.model[c][attributes[0]][n] = isfile(self.cfg.model_prefix + n.lower() + "_" + c + ".joblib")
                 self.model[c][attributes[1]][n] = self.cfg.accuracy[c][n] or -1
         self.force_reset = do_reset
+        self.confidence = 0
     
     def predict(self, features):
         return None
@@ -66,6 +67,8 @@ class LeylineTrainer(Trainer):
     def predict(self, features):
         # Use the trained classifier to predict the Leyline location
         predicted_location = self.classifier.predict(features.reshape(1,-1))[0]
+        # Update the confidence of the prediction
+        self.confidence = np.average(np.array([np.max(estimator.predict_proba(features.reshape(1,-1)), axis=1) for estimator in self.classifier.estimators_]).T, axis=1)[0]
         # Return the predicted location
         return predicted_location
 
@@ -105,5 +108,7 @@ class MiningTrainer(Trainer):
     def predict(self, features):
         # Use the trained classifier to predict the Leyline location
         predicted_location = self.classifier.predict(np.array(features).reshape(1,-1))[0]
+        # Update the confidence of the prediction
+        self.confidence = np.average(np.array([np.max(estimator.predict_proba(np.array(features).reshape(1,-1)), axis=1) for estimator in self.classifier.estimators_]).T, axis=1)[0]
         # Return the predicted location
         return predicted_location

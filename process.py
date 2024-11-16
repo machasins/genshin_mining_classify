@@ -7,7 +7,7 @@ import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # FATAL
 logging.getLogger('tensorflow').setLevel(logging.FATAL)
 
-import tensorflow as tf
+#import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from skimage.feature import hog
@@ -53,6 +53,7 @@ def process_features(url):
     features = extract_features(altered_image)
     return features
 
+'''
 def loss_leyline(true, pred):
     # Split the outputs for yellow and blue
     y_true_yellow, y_true_blue = true
@@ -68,6 +69,7 @@ def loss_leyline(true, pred):
     # Combine the losses with the penalty
     total_loss = loss_yellow + loss_blue + 0.1 * overlap_penalty
     return tf.reduce_mean(total_loss)  # Take the mean across the batch
+'''
 
 # Split data into training and testing
 def test_split(features, labels) -> list:
@@ -97,6 +99,7 @@ def train_mrfc(features, labels):
     # Return trained classifier and accuracy
     return classifier, accuracy
 
+'''
 # Function to train the classifier
 def train_nn(features, labels, epoch_count):
     # Split data into training and testing sets
@@ -140,3 +143,4 @@ def train_nn(features, labels, epoch_count):
     accuracy = model.evaluate(X_test, {f'{i}_output': y_test_cat[i] for i in range(labels.shape[1])}, verbose=0)
     # Return trained classifier and accuracy
     return classifier, np.average(accuracy[1:])
+'''

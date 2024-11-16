@@ -37,11 +37,18 @@ class Input():
         self.cfg.write_log("Input: Connecting to SQL...", log.info)
         self.connect_sql()
         
+        # Initialize cached data
+        self.ore_shown = {}
+        self.ore_hidden = {}
+        self.leyline_url = {}
+        self.leyline_class = {}
+        
         # Initialize sheets data
         self.leyline_col = self.cfg.sheet.find("Leyline", 1).col
         self.ending_col = self.cfg.sheet.find("Options:", 1).col - 3
         
         self.cfg.write_log("Input: Ready", log.info)
+        
         
     
     def connect_sql(self):
@@ -55,7 +62,8 @@ class Input():
     def get_date(self) -> list:
         current_day = date.strptime(self.cfg.sheet.acell("AY4").value, '%m/%d/%y')
         # Return the difference in days between the current day and the start date
-        return [current_day.year, current_day.month, current_day.day]
+        self.date = [current_day.year, current_day.month, current_day.day]
+        return self.date
     
     # Get the shown ores (1)
     def get_ore_shown(self, nation: int) -> list:
@@ -65,7 +73,8 @@ class Input():
         # Extract integers from the data
         data = [(int(x.value) if re.search('[0-9]', x.value) else '') for x in data]
         # Get the index of all 1s in the data, if none return negative
-        return [i for i, x in enumerate(data) if x == 1] if 1 in data else [-2]
+        self.ore_shown[nation] = [i for i, x in enumerate(data) if x == 1] if 1 in data else [-2]
+        return self.ore_shown[nation]
     
     # Get the hidden ores (2)
     def get_ore_hidden(self, nation: int) -> list:
@@ -75,7 +84,8 @@ class Input():
         # Extract integers from the data
         data = [(int(x.value) if re.search('[0-9]', x.value) else '') for x in data]
         # Get the index of all 2s in the data, if none return negative
-        return [i for i, x in enumerate(data) if x == 2] if 2 in data else [-2]
+        self.ore_hidden[nation] = [i for i, x in enumerate(data) if x == 2] if 2 in data else [-2]
+        return self.ore_hidden[nation]
     
     # Set the hidden ores (2)
     def set_ore_hidden(self, nation: int, data: str) -> None:
@@ -83,11 +93,13 @@ class Input():
         ores = [int(i) for i in re.findall(r'\d+', data)]
         # Update the relevant cells
         row = (nation + 1) * 3
-        [self.cfg.sheet.update_cell(row, c, '2') for c in ores]
+        [self.cfg.sheet.update_cell(row, c, '2') for c in ores if self.cfg.sheet.cell(row, c).value != '1']
+        self.ore_hidden = ores
     
     # Get the image URL for the leylines
     def get_leyline_url(self, nation: int) -> str:
-        return self.cfg.sheet.cell((nation + 1) * 3, self.leyline_col).value
+        self.leyline_url[nation] = self.cfg.sheet.cell((nation + 1) * 3, self.leyline_col).value
+        return self.leyline_url[nation]
     
     # Get the image URL for the leylines from the clipboard
     def get_leyline_url_data(self) -> list:
@@ -96,12 +108,14 @@ class Input():
             f"SELECT mText FROM Main WHERE mText REGEXP '^https://i\.imgur\.com/.*\.png$' ORDER BY lID DESC LIMIT { len(self.cfg.nations) }"
             ).fetchall()]
         # return the reversed url list
-        return urls[::-1]
+        self.urls = urls[::-1]
+        return self.urls
     
     # Set the leyline url
     def set_leyline_url(self, nation, url):
         # Update the google sheet with the aquired data
         self.cfg.sheet.update_cell((nation + 1) * 3, self.leyline_col, url)
+        self.leyline_url[nation] = url
         
     # Get the leyline classifications
     def get_leyline_class(self, nation: int) -> list:
@@ -109,7 +123,8 @@ class Input():
         row = (nation + 1) * 3
         data = [x.value for x in self.cfg.sheet.range(row, self.leyline_col + 1, row, self.ending_col - 1)]
         # Get indexes of 'y' and 'b', otherwise return negative
-        return [data.index('y'), data.index('b')] if 'y' in data and 'b' in data else [-2, -2]
+        self.leyline_class[nation] = [data.index('y'), data.index('b')] if 'y' in data and 'b' in data else [-2, -2]
+        return self.leyline_class[nation]
     
     # Set the leyline classifications
     def set_leyline_class(self, nation: int, data: str) -> None:
@@ -119,18 +134,19 @@ class Input():
         row = (nation + 1) * 3
         self.cfg.sheet.update_cell(row, self.leyline_col + leylines[0], 'y')
         self.cfg.sheet.update_cell(row, self.leyline_col + leylines[1], 'b')
+        self.leyline_class[nation] = leylines
     
     # Format the shown ores in a displayable format
     def get_ore_shown_formatted(self, nation: int) -> str:
-        return "[" + ", ".join(["{:2}".format(x + 1) for x in self.get_ore_shown(nation)]) + "]"
+        return "[" + ", ".join(["{:2}".format(x + 1) for x in self.ore_shown[nation]]) + "]"
     
     # Format the hidden ores in a displayable format
     def get_ore_hidden_formatted(self, nation: int) -> str:
-        return "[" + ", ".join(["{:2}".format(x + 1) for x in self.get_ore_hidden(nation)]) + "]"
+        return "[" + ", ".join(["{:2}".format(x + 1) for x in self.ore_hidden[nation]]) + "]"
     
     # Format the leylines in a displayable format
     def get_leyline_class_formatted(self, nation: int) -> str:
-        data = self.get_leyline_class(nation)
+        data = self.leyline_class[nation]
         return "[{:2}, {:2}]".format(data[0] + 1, data[1] + 1)
 
 def regexp(expr, item):

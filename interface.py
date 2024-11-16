@@ -108,6 +108,12 @@ class Interface():
     # Retrieve data from the Google Sheet
     def retrieve_data(self):
         def indiv_retrieve_data(self, nation, index):
+            # Retrieve data
+            self.input.get_ore_shown(index)
+            self.input.get_ore_hidden(index)
+            self.input.get_leyline_class(index)
+            self.input.get_date()
+            # Display data
             self.var[f"{nation}_ore_1"].set(self.input.get_ore_shown_formatted(index))
             self.var[f"{nation}_ore_2"].set(self.input.get_ore_hidden_formatted(index))
             self.var[f"{nation}_ley_im"].set(self.input.get_leyline_url(index))
@@ -156,9 +162,9 @@ class Interface():
     def poll_mining_ai(self):
         def indiv_poll_mining_ai(self, nation, index):
             # Get relevant data
-            date = self.input.get_date()
-            ore_shown = self.input.get_ore_shown(index)
-            leylines = self.input.get_leyline_class(index)
+            date = self.input.date
+            ore_shown = self.input.ore_shown[index]
+            leylines = self.input.leyline_class[index]
             # Check if enough data has been recieved
             if ore_shown[0] >= 0 and leylines[0] >= 0:
                 # Poll Mining AI
@@ -180,6 +186,16 @@ class Interface():
         
         self.start_thread_queue(indiv_write_mining, self.nations)
     
+    def print_info(self):
+        def print_func(self, nation, index):
+            cfg.write_log("Interface: Confidence data:", log.info)
+            length = len(sorted(self.nations, key=len)[-1])
+            for n in self.nations:
+                cfg.write_log(f"Interface: [{ n }] {' ' * (length - len(n))}L: { self.input.model_leyline[n].confidence * 100 :.2f}% M: { self.input.model_mining[n].confidence * 100 :.2f}%", log.info)
+            cfg.write_log("Interface: Autofill done", log.info)
+        
+        self.start_thread_queue(print_func, { "print" })
+    
     # Run all operations sequentially
     def autofill(self):
         self.retrieve_data()
@@ -188,6 +204,7 @@ class Interface():
         self.write_leyline()
         self.poll_mining_ai()
         self.write_mining()
+        self.print_info()
     
     # Start a thread per entry in the enumerable
     def start_thread_queue(self, func, enumerable):
