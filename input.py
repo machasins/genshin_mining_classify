@@ -87,14 +87,11 @@ class Input():
         self.ore_hidden[nation] = [i for i, x in enumerate(data) if x == 2] if 2 in data else [-2]
         return self.ore_hidden[nation]
     
-    # Set the hidden ores (2)
-    def set_ore_hidden(self, nation: int, data: str) -> None:
-        # Get integers from the formatted string
-        ores = [int(i) for i in re.findall(r'\d+', data)]
+    # Write the hidden ores (2)
+    def write_ore_hidden(self, nation: int) -> None:
         # Update the relevant cells
         row = (nation + 1) * 3
-        [self.cfg.sheet.update_cell(row, c, '2') for c in ores if self.cfg.sheet.cell(row, c).value != '1']
-        self.ore_hidden = ores
+        [self.cfg.sheet.update_cell(row, c + 1, '2') for c in self.ore_hidden[nation] if not self.cfg.sheet.cell(row, c + 1).value]
     
     # Get the image URL for the leylines
     def get_leyline_url(self, nation: int) -> str:
@@ -111,11 +108,10 @@ class Input():
         self.urls = urls[::-1]
         return self.urls
     
-    # Set the leyline url
-    def set_leyline_url(self, nation, url):
+    # Write the leyline url
+    def write_leyline_url(self, nation):
         # Update the google sheet with the aquired data
-        self.cfg.sheet.update_cell((nation + 1) * 3, self.leyline_col, url)
-        self.leyline_url[nation] = url
+        self.cfg.sheet.update_cell((nation + 1) * 3, self.leyline_col, self.urls[nation])
         
     # Get the leyline classifications
     def get_leyline_class(self, nation: int) -> list:
@@ -126,15 +122,12 @@ class Input():
         self.leyline_class[nation] = [data.index('y'), data.index('b')] if 'y' in data and 'b' in data else [-2, -2]
         return self.leyline_class[nation]
     
-    # Set the leyline classifications
-    def set_leyline_class(self, nation: int, data: str) -> None:
-        # Get integers from the formatted string
-        leylines = [int(i) for i in re.findall(r'\d+', data)]
+    # Write the leyline classifications
+    def write_leyline_class(self, nation: int) -> None:
         # Update the relevant cells
         row = (nation + 1) * 3
-        self.cfg.sheet.update_cell(row, self.leyline_col + leylines[0], 'y')
-        self.cfg.sheet.update_cell(row, self.leyline_col + leylines[1], 'b')
-        self.leyline_class[nation] = leylines
+        self.cfg.sheet.update_cell(row, self.leyline_col + self.leyline_class[nation][0] + 1, 'y')
+        self.cfg.sheet.update_cell(row, self.leyline_col + self.leyline_class[nation][1] + 1, 'b')
     
     # Format the shown ores in a displayable format
     def get_ore_shown_formatted(self, nation: int) -> str:
@@ -146,8 +139,7 @@ class Input():
     
     # Format the leylines in a displayable format
     def get_leyline_class_formatted(self, nation: int) -> str:
-        data = self.leyline_class[nation]
-        return "[{:2}, {:2}]".format(data[0] + 1, data[1] + 1)
+        return "[{:2}, {:2}]".format(self.leyline_class[nation][0] + 1, self.leyline_class[nation][1] + 1)
 
 def regexp(expr, item):
     reg = re.compile(expr)

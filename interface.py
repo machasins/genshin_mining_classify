@@ -80,11 +80,6 @@ class Interface():
             hyperlink.bind("<Button-1>", partial(open_browser, self.var, f"{n}_ley_im"))
             hyperlink.bind("<Enter>", partial(hover_font, hyperlink, 'blue', self.underlinefont))
             hyperlink.bind("<Leave>", partial(hover_font, hyperlink, 'black', self.defaultfont))
-            
-            # Setup variables for data handling
-            self.var[f"{n}_data"] = False
-            self.var[f"{n}_ley_w"] = False
-            self.var[f"{n}_ore_w"] = False
         
         # Button frame setup
         self.buttonframe = ttk.Frame(self.root, padding="10")
@@ -118,7 +113,6 @@ class Interface():
             self.var[f"{nation}_ore_2"].set(self.input.get_ore_hidden_formatted(index))
             self.var[f"{nation}_ley_im"].set(self.input.get_leyline_url(index))
             self.var[f"{nation}_ley_yb"].set(self.input.get_leyline_class_formatted(index))
-            self.var[f"{nation}_data"] = self.var[f"{nation}_ley_im"] != ""
         
         self.start_thread_queue(indiv_retrieve_data, self.nations)
     
@@ -127,24 +121,20 @@ class Interface():
         # Get the urls from the clipboard
         urls = self.input.get_leyline_url_data()
         def indiv_write_leyline_urls(self, nation, index):
-            self.input.set_leyline_url(index, urls[index])
+            self.input.write_leyline_url(index)
             self.var[f"{nation}_ley_im"].set(urls[index])
-            self.var[f"{nation}_data"] = self.var[f"{nation}_ley_im"] != ""
                 
         self.start_thread_queue(indiv_write_leyline_urls, self.nations)
     
     # Poll the AI to see where it thinks the leylines are located within an image
     def poll_leyline_ai(self):
         def indiv_poll_leyline_ai(self, nation, index):
-            # Check if enough data has been recieved
-            if self.var[f"{nation}_data"]:
-                # Poll Leyline AI
-                features = process.process_features(self.var[f"{nation}_ley_im"].get())
-                result = self.input.model_leyline[nation].predict(features)
-                result = [x + 1 for x in result]
-                # Format and display result
-                self.var[f"{nation}_ley_g"].set("[" + ", ".join("{:2}".format(x) for x in result) + "]")
-                self.var[f"{nation}_ley_w"] = True
+            # Poll Leyline AI
+            features = process.process_features(self.var[f"{nation}_ley_im"].get())
+            result = self.input.model_leyline[nation].predict(features)
+            self.input.leyline_class[index] = result.tolist()
+            # Format and display result
+            self.var[f"{nation}_ley_g"].set("[" + ", ".join("{:2}".format(x + 1) for x in result) + "]")
                 
         self.start_thread_queue(indiv_poll_leyline_ai, self.nations)
     
@@ -152,8 +142,8 @@ class Interface():
     def write_leyline(self):
         def indiv_write_leyline(self, nation, index):
             # Check if AI has been run
-            if self.var[f"{nation}_ley_w"]:
-                self.input.set_leyline_class(index, self.var[f"{nation}_ley_g"].get())
+            if self.input.leyline_class[index]:
+                self.input.write_leyline_class(index)
                 self.var[f"{nation}_ley_yb"].set(self.var[f"{nation}_ley_g"].get())
         
         self.start_thread_queue(indiv_write_leyline, self.nations)
@@ -169,10 +159,10 @@ class Interface():
             if ore_shown[0] >= 0 and leylines[0] >= 0:
                 # Poll Mining AI
                 result = self.input.model_mining[nation].predict(date + ore_shown + leylines)
+                self.input.ore_hidden[index] = result.tolist()
                 result = [x + 1 for x in result]
                 # Format and display result
                 self.var[f"{nation}_ore_g"].set("[" + ", ".join("{:2}".format(x) for x in result) + "]")
-                self.var[f"{nation}_ore_w"] = True
         
         self.start_thread_queue(indiv_poll_mining_ai, self.nations)
     
@@ -180,8 +170,8 @@ class Interface():
     def write_mining(self):
         def indiv_write_mining(self, nation, index):
             # Check if AI has been run
-            if self.var[f"{nation}_ore_w"]:
-                self.input.set_ore_hidden(index, self.var[f"{nation}_ore_g"].get())
+            if self.input.ore_hidden[index]:
+                self.input.write_ore_hidden(index)
                 self.var[f"{nation}_ore_2"].set(self.var[f"{nation}_ore_g"].get())
         
         self.start_thread_queue(indiv_write_mining, self.nations)
@@ -214,9 +204,13 @@ class Interface():
                 self.thread_queue.append(thr)
                 thr.start()
         
-        thr = threading.Thread(target=self.wait_for_queue, args=(self.queue_num, start_threads))
-        thr.start()
-        self.queue_num += 1
+        if not self.cfg.arg.singlethread:
+            thr = threading.Thread(target=self.wait_for_queue, args=(self.queue_num, start_threads))
+            thr.start()
+            self.queue_num += 1
+        else:
+            for i, n in enumerate(enumerable):
+                func(self, n, i)
     
     # Wait for all queue entries to finish
     def wait_for_queue(self, queue_num, callback):

@@ -36,6 +36,7 @@ class cfg:
         parser.add_argument('-m', '--model', action="store_const", default=False, const=True, help="whether to force the model to be trained again")
         parser.add_argument('-a', '--autofill', action="store_const", default=False, const=True, help="whether the program should run the autofill command at startup")
         parser.add_argument('-e', '--errorcheck', action="store_const", default=False, const=True, help="whether the program should test the data for errors")
+        parser.add_argument('-s', '--singlethread', action="store_const", default=False, const=True, help="whether the program should be single threaded")
         self.arg = parser.parse_args()
         log.basicConfig(format="%(message)s", level=self.arg.output.upper() if not self.arg.verbose else "INFO", filename=self.arg.file)
     
