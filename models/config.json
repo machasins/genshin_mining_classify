@@ -1,15 +1,15 @@
 {
-  "Data": 1731664180.467606,
-  "Mondstadt_leyline_accuracy": 0.994023928859561,
-  "Liyue_leyline_accuracy": 0.6312732380954467,
+  "Data": 1741463425.906959,
+  "Mondstadt_leyline_accuracy": 0.9943676184635102,
+  "Liyue_leyline_accuracy": 0.7646051346125912,
   "Inazuma_leyline_accuracy": 1.0,
   "Sumeru_leyline_accuracy": 1.0,
-  "Fontaine_leyline_accuracy": 0.9453982167180577,
-  "Mondstadt_mining_accuracy": 0.9545036530249199,
-  "Liyue_mining_accuracy": 0.9791630613843143,
-  "Inazuma_mining_accuracy": 0.9660171184703074,
-  "Sumeru_mining_accuracy": 0.9795261845568844,
-  "Fontaine_mining_accuracy": 0.7836995086011929,
+  "Fontaine_leyline_accuracy": 0.983141173714674,
+  "Mondstadt_mining_accuracy": 0.9493338797914023,
+  "Liyue_mining_accuracy": 0.9751992880852608,
+  "Inazuma_mining_accuracy": 0.9667323578492304,
+  "Sumeru_mining_accuracy": 0.9781129996466418,
+  "Fontaine_mining_accuracy": 0.7876284889910633,
   "Natlan_leyline_accuracy": 1.0,
-  "Natlan_mining_accuracy": 0.9488160479784925
+  "Natlan_mining_accuracy": 0.967200619566636
 }

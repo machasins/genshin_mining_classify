@@ -1,6 +1,7 @@
 import re
 import os
 import json
+import time
 import sqlite3
 import logging as log
 from datetime import datetime as date
@@ -57,46 +58,63 @@ class Input():
         self.db.create_function("REGEXP", 2, regexp)
         self.cur = self.db.cursor()
         
+    def try_access_sheets(self, f):
+        while True:
+            try:
+                ret = f()
+                return ret
+            except:
+                time.sleep(60)
     
     # Get the current date, compared to the start date of the nation's data
     def get_date(self) -> list:
-        current_day = date.strptime(self.cfg.sheet.acell("AY4").value, '%m/%d/%y')
-        # Return the difference in days between the current day and the start date
-        self.date = [current_day.year, current_day.month, current_day.day]
-        return self.date
+        def f():
+            current_day = date.strptime(self.cfg.sheet.acell("AY4").value, '%m/%d/%y')
+            # Return the difference in days between the current day and the start date
+            self.date = [current_day.year, current_day.month, current_day.day]
+            return self.date
+        return self.try_access_sheets(f)
     
     # Get the shown ores (1)
     def get_ore_shown(self, nation: int) -> list:
-        # Get the relevant data
-        row = (nation + 1) * 3
-        data = self.cfg.sheet.range(row, 1, row, self.leyline_col - 1)
-        # Extract integers from the data
-        data = [(int(x.value) if re.search('[0-9]', x.value) else '') for x in data]
-        # Get the index of all 1s in the data, if none return negative
-        self.ore_shown[nation] = [i for i, x in enumerate(data) if x == 1] if 1 in data else [-2]
-        return self.ore_shown[nation]
+        def f():
+            # Get the relevant data
+            row = (nation + 1) * 3
+            data = self.cfg.sheet.range(row, 1, row, self.leyline_col - 1)
+            # Extract integers from the data
+            data = [(int(x.value) if re.search('[0-9]', x.value) else '') for x in data]
+            # Get the index of all 1s in the data, if none return negative
+            self.ore_shown[nation] = [i for i, x in enumerate(data) if x == 1] if 1 in data else [-2]
+            return self.ore_shown[nation]
+        return self.try_access_sheets(f)
     
     # Get the hidden ores (2)
     def get_ore_hidden(self, nation: int) -> list:
-        # Get the relevant data
-        row = (nation + 1) * 3
-        data = self.cfg.sheet.range(row, 1, row, self.leyline_col - 1)
-        # Extract integers from the data
-        data = [(int(x.value) if re.search('[0-9]', x.value) else '') for x in data]
-        # Get the index of all 2s in the data, if none return negative
-        self.ore_hidden[nation] = [i for i, x in enumerate(data) if x == 2] if 2 in data else [-2]
-        return self.ore_hidden[nation]
+        def f():
+            # Get the relevant data
+            row = (nation + 1) * 3
+            data = self.cfg.sheet.range(row, 1, row, self.leyline_col - 1)
+            # Extract integers from the data
+            data = [(int(x.value) if re.search('[0-9]', x.value) else '') for x in data]
+            # Get the index of all 2s in the data, if none return negative
+            self.ore_hidden[nation] = [i for i, x in enumerate(data) if x == 2] if 2 in data else [-2]
+            return self.ore_hidden[nation]
+        return self.try_access_sheets(f)
     
     # Write the hidden ores (2)
     def write_ore_hidden(self, nation: int) -> None:
-        # Update the relevant cells
-        row = (nation + 1) * 3
-        [self.cfg.sheet.update_cell(row, c + 1, '2') for c in self.ore_hidden[nation] if not self.cfg.sheet.cell(row, c + 1).value]
+        def f():
+            # Update the relevant cells
+            row = (nation + 1) * 3
+            [self.cfg.sheet.update_cell(row, c + 1, '2') for c in self.ore_hidden[nation] if not self.cfg.sheet.cell(row, c + 1).value]
+        return self.try_access_sheets(f)
     
     # Get the image URL for the leylines
     def get_leyline_url(self, nation: int) -> str:
-        self.leyline_url[nation] = self.cfg.sheet.cell((nation + 1) * 3, self.leyline_col).value
-        return self.leyline_url[nation]
+        def f():
+            self.leyline_url[nation] = self.cfg.sheet.cell((nation + 1) * 3, self.leyline_col).value
+            return self.leyline_url[nation]
+        return self.try_access_sheets(f)
     
     # Get the image URL for the leylines from the clipboard
     def get_leyline_url_data(self) -> list:
@@ -110,24 +128,30 @@ class Input():
     
     # Write the leyline url
     def write_leyline_url(self, nation):
-        # Update the google sheet with the aquired data
-        self.cfg.sheet.update_cell((nation + 1) * 3, self.leyline_col, self.urls[nation])
+        def f():
+            # Update the google sheet with the aquired data
+            self.cfg.sheet.update_cell((nation + 1) * 3, self.leyline_col, self.urls[nation])
+        return self.try_access_sheets(f)
         
     # Get the leyline classifications
     def get_leyline_class(self, nation: int) -> list:
-        # Get the relevant data
-        row = (nation + 1) * 3
-        data = [x.value for x in self.cfg.sheet.range(row, self.leyline_col + 1, row, self.ending_col - 1)]
-        # Get indexes of 'y' and 'b', otherwise return negative
-        self.leyline_class[nation] = [data.index('y'), data.index('b')] if 'y' in data and 'b' in data else [-2, -2]
-        return self.leyline_class[nation]
+        def f():
+            # Get the relevant data
+            row = (nation + 1) * 3
+            data = [x.value for x in self.cfg.sheet.range(row, self.leyline_col + 1, row, self.ending_col - 1)]
+            # Get indexes of 'y' and 'b', otherwise return negative
+            self.leyline_class[nation] = [data.index('y'), data.index('b')] if 'y' in data and 'b' in data else [-2, -2]
+            return self.leyline_class[nation]
+        return self.try_access_sheets(f)
     
     # Write the leyline classifications
     def write_leyline_class(self, nation: int) -> None:
-        # Update the relevant cells
-        row = (nation + 1) * 3
-        self.cfg.sheet.update_cell(row, self.leyline_col + self.leyline_class[nation][0] + 1, 'y')
-        self.cfg.sheet.update_cell(row, self.leyline_col + self.leyline_class[nation][1] + 1, 'b')
+        def f():
+            # Update the relevant cells
+            row = (nation + 1) * 3
+            self.cfg.sheet.update_cell(row, self.leyline_col + self.leyline_class[nation][0] + 1, 'y')
+            self.cfg.sheet.update_cell(row, self.leyline_col + self.leyline_class[nation][1] + 1, 'b')
+        return self.try_access_sheets(f)
     
     # Format the shown ores in a displayable format
     def get_ore_shown_formatted(self, nation: int) -> str:

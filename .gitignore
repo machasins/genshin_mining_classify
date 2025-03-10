@@ -1,6 +1,5 @@
 /__pycache__
 /data/*.npy
-/models/*.joblib
+/models/*
 /key.json
-models/config.json
 run.bat

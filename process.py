@@ -8,12 +8,11 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # FATAL
 logging.getLogger('tensorflow').setLevel(logging.FATAL)
 
 #import tensorflow as tf
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.svm import SVC
 from skimage.feature import hog
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.ensemble import RandomForestClassifier
-
 
 def aquire_image(url):
     response = requests.get(url, headers = {'User-agent': 'machasins'})
@@ -92,7 +91,7 @@ def train_mrfc(features, labels):
     # Split data into training and testing sets
     X_train, X_test, y_train, y_test = test_split(features, labels)
     # Initialize and train the classifier (e.g., SVM)
-    classifier = MultiOutputRegressor(RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=2))
+    classifier = MultiOutputRegressor(RandomForestClassifier(random_state=42))
     classifier.fit(X_train, y_train)
     # Calculate accuracy
     accuracy = classifier.score(X_test, y_test)

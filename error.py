@@ -216,7 +216,7 @@ class ErrorCheck():
         def get_image():
             response = requests.get(url, headers = {'User-agent': 'machasins'})
             image_data = Image.open(BytesIO(response.content))
-            image_size = (int(image_data.size[0] * 250.0 / max(image_data.size)), int(image_data.size[1] * 250.0 / max(image_data.size)))
+            image_size = (int(image_data.size[0] * 200.0 / max(image_data.size)), int(image_data.size[1] * 200.0 / max(image_data.size)))
             new_image = ImageTk.PhotoImage(image_data.resize(image_size))
             self.leyline_im.configure(image=new_image)
             self.leyline_im.image = new_image
