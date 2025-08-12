@@ -13,7 +13,7 @@ class Trainer():
         self.cfg = cfg
         # Read model metadata
         self.model = {}
-        categories = ["leyline", "mining"]
+        categories = ["mining"]
         attributes = ["file", "accuracy"]
         for c in categories:
             self.model[c] = {}
@@ -35,42 +35,6 @@ class Trainer():
     # Update AI accuracy for config
     def update_accuracy(self, nation, suffix, accuracy):
         self.cfg.write_model(nation + suffix + "_accuracy", accuracy)
-    
-class LeylineTrainer(Trainer):
-    def __init__(self, nation, do_reset, cfg):
-        super().__init__(do_reset, cfg)
-        
-        self.leyline = self.model["leyline"]
-        
-        if self.leyline["file"][nation] and not self.force_reset:
-            self.cfg.write_log(f"Leyline: [{ nation }] Loading existing model...", log.info)
-            self.classifier = load(self.cfg.model_prefix + nation + "_leyline.joblib")
-            self.accuracy = self.leyline["accuracy"][nation]
-        else:
-            self.cfg.write_log(f"Leyline: [{ nation }] Old leyline model out of date, training new model...", log.warning, True)
-            feature = np.load(self.cfg.data_prefix + nation.lower() + self.cfg.suffix["f"] + ".npy")
-            self.cfg.write_log(f"Leyline: [{ nation }] Loaded data...", log.info)
-            labels = np.stack((np.load(self.cfg.data_prefix + nation.lower() + self.cfg.suffix["y"] + ".npy"), 
-                               np.load(self.cfg.data_prefix + nation.lower() + self.cfg.suffix["b"] + ".npy")), 
-                               axis=-1)
-            self.cfg.write_log(f"Leyline: [{ nation }] Loaded results...", log.info)
-            
-            self.cfg.write_log(f"Leyline: [{ nation }] Training...", log.info)
-            self.classifier, self.accuracy = process.train_mrfc(feature, labels)
-            self.cfg.write_log(f"Leyline: [{ nation }] Training complete", log.info)
-                
-            dump(self.classifier, self.cfg.model_prefix + nation.lower() + "_leyline.joblib")
-            self.update_accuracy(nation, "_leyline", self.accuracy)
-        self.cfg.write_log("Leyline: [" + nation + "] Loaded Leyline AI with {0:.2%} accuracy.".format(self.accuracy), log.info)
-
-    # Function to predict Leyline location in a given screenshot
-    def predict(self, features):
-        # Use the trained classifier to predict the Leyline location
-        predicted_location = self.classifier.predict(features.reshape(1,-1))[0]
-        # Update the confidence of the prediction
-        self.confidence = np.average(np.array([np.max(estimator.predict_proba(features.reshape(1,-1)), axis=1) for estimator in self.classifier.estimators_]).T, axis=1)[0]
-        # Return the predicted location
-        return predicted_location
 
 class MiningTrainer(Trainer):
     def __init__(self, nation, do_reset, cfg):

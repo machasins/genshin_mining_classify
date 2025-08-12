@@ -4,12 +4,9 @@ import webbrowser
 import logging as log
 from tkinter import *
 from tkinter import ttk, font
-from functools import partial
 
 import input
 import config
-import process
-import error
 
 class Interface():
     def __init__(self, cfg:config.cfg) -> None:        
@@ -20,17 +17,13 @@ class Interface():
         cfg.write_log("Interface: Initializing structure...", log.info)
         self.define_inital()
         
-        if cfg.arg.errorcheck:
-            cfg.write_log("Interface: Error checking mode started...", log.warning, True)
-            self.error = error.ErrorCheck(self)
-        else:
-            cfg.write_log("Interface: Initializing data...", log.info)
-            self.define_data()
-            cfg.write_log("Interface: Ready.", log.info, True)
-            
-            if cfg.arg.autofill:
-                cfg.write_log("Interface: Autofill started...", log.info)
-                self.autofill()
+        cfg.write_log("Interface: Initializing data...", log.info)
+        self.define_data()
+        cfg.write_log("Interface: Ready.", log.info, True)
+        
+        if cfg.arg.autofill:
+            cfg.write_log("Interface: Autofill started...", log.info)
+            self.autofill()
     
     # Define the initial window variables
     def define_inital(self):
@@ -72,14 +65,6 @@ class Interface():
             ttk.Label(self.dataframe, textvariable=self.create_str_var(f"{n}_ore_2", "[__, __, __, __, __]")).grid(row=i,column=1,sticky='NW')
             ttk.Label(self.dataframe, textvariable=self.create_str_var(f"{n}_ore_g", "[__, __, __, __, __]"), foreground='gray').grid(row=i,column=2,sticky='NW')
             ttk.Label(self.dataframe, textvariable=self.create_str_var(f"{n}_ley_yb", "[__, __]")).grid(row=i,column=4,sticky='NE')
-            ttk.Label(self.dataframe, textvariable=self.create_str_var(f"{n}_ley_g", "[__, __]"), foreground='gray').grid(row=i,column=5,sticky='NE')
-            
-            # Handling the hyperlink for the image
-            hyperlink = ttk.Label(self.dataframe, cursor='hand2', textvariable=self.create_str_var(f"{n}_ley_im", f"https://i.imgur.com/XXXXXX{i}.png"))
-            hyperlink.grid(row=i,column=3,sticky='NE')
-            hyperlink.bind("<Button-1>", partial(open_browser, self.var, f"{n}_ley_im"))
-            hyperlink.bind("<Enter>", partial(hover_font, hyperlink, 'blue', self.underlinefont))
-            hyperlink.bind("<Leave>", partial(hover_font, hyperlink, 'black', self.defaultfont))
         
         # Button frame setup
         self.buttonframe = ttk.Frame(self.root, padding="10")
@@ -90,14 +75,11 @@ class Interface():
         [self.buttonframe.columnconfigure(i, weight=1) for i in range(0,5)]
         ttk.Button(self.buttonframe, text="Autofill", command=self.autofill).grid(row=1,column=0,sticky='SEW')
         ttk.Button(self.buttonframe, text="Retrieve Data", command=self.retrieve_data).grid(row=1,column=1,sticky='SEW')
-        ttk.Button(self.buttonframe, text="LeylineAI", command=self.poll_leyline_ai).grid(row=1,column=3,sticky='SEW')
         ttk.Button(self.buttonframe, text="MiningAI", command=self.poll_mining_ai).grid(row=1,column=4,sticky='SEW')
         
         # Buttons for setting the data polled from the ais to the sheet
         self.buttonframe.rowconfigure(0, weight=1)
         [self.buttonframe.columnconfigure(i, weight=1) for i in range(0,5)]
-        ttk.Button(self.buttonframe, text="Write URLs", command=self.write_leyline_urls).grid(row=0,column=1,sticky='SEW')
-        ttk.Button(self.buttonframe, text="Write Leyline", command=self.write_leyline).grid(row=0,column=3,sticky='SEW')
         ttk.Button(self.buttonframe, text="Write Mining", command=self.write_mining).grid(row=0,column=4,sticky='SEW')
     
     # Retrieve data from the Google Sheet
@@ -111,42 +93,9 @@ class Interface():
             # Display data
             self.var[f"{nation}_ore_1"].set(self.input.get_ore_shown_formatted(index))
             self.var[f"{nation}_ore_2"].set(self.input.get_ore_hidden_formatted(index))
-            self.var[f"{nation}_ley_im"].set(self.input.get_leyline_url(index))
             self.var[f"{nation}_ley_yb"].set(self.input.get_leyline_class_formatted(index))
         
         self.start_thread_queue(indiv_retrieve_data, self.nations)
-    
-    # Retrieve URLs from clipboard and write them to the Google Sheet
-    def write_leyline_urls(self):
-        # Get the urls from the clipboard
-        urls = self.input.get_leyline_url_data()
-        def indiv_write_leyline_urls(self, nation, index):
-            self.input.write_leyline_url(index)
-            self.var[f"{nation}_ley_im"].set(urls[index])
-                
-        self.start_thread_queue(indiv_write_leyline_urls, self.nations)
-    
-    # Poll the AI to see where it thinks the leylines are located within an image
-    def poll_leyline_ai(self):
-        def indiv_poll_leyline_ai(self, nation, index):
-            # Poll Leyline AI
-            features = process.process_features(self.var[f"{nation}_ley_im"].get())
-            result = self.input.model_leyline[nation].predict(features)
-            self.input.leyline_class[index] = result.tolist()
-            # Format and display result
-            self.var[f"{nation}_ley_g"].set("[" + ", ".join("{:2}".format(x + 1) for x in result) + "]")
-                
-        self.start_thread_queue(indiv_poll_leyline_ai, self.nations)
-    
-    # Write leyline data recieved from AI to the Google Sheet
-    def write_leyline(self):
-        def indiv_write_leyline(self, nation, index):
-            # Check if AI has been run
-            if self.input.leyline_class[index]:
-                self.input.write_leyline_class(index)
-                self.var[f"{nation}_ley_yb"].set(self.var[f"{nation}_ley_g"].get())
-        
-        self.start_thread_queue(indiv_write_leyline, self.nations)
     
     # Poll the AI to see where it thinks the hidden ores are in the world
     def poll_mining_ai(self):
@@ -181,7 +130,7 @@ class Interface():
             cfg.write_log("Interface: Confidence data:", log.info)
             length = len(sorted(self.nations, key=len)[-1])
             for n in self.nations:
-                cfg.write_log(f"Interface: [{ n }] {' ' * (length - len(n))}L: { self.input.model_leyline[n].confidence * 100 :.2f}% M: { self.input.model_mining[n].confidence * 100 :.2f}%", log.info)
+                cfg.write_log(f"Interface: [{ n }] {' ' * (length - len(n))}: { self.input.model_mining[n].confidence * 100 :.2f}%", log.info)
             cfg.write_log("Interface: Autofill done", log.info)
         
         self.start_thread_queue(print_func, { "print" })
@@ -189,9 +138,6 @@ class Interface():
     # Run all operations sequentially
     def autofill(self):
         self.retrieve_data()
-        self.write_leyline_urls()
-        self.poll_leyline_ai()
-        self.write_leyline()
         self.poll_mining_ai()
         self.write_mining()
         self.print_info()

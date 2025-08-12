@@ -10,8 +10,6 @@ class cfg:
         'd' : "date",
         '1' : "ore1",
         '2' : "ore2",
-        'f' : "feature",
-        'u' : "url",
         'y' : "ylabel",
         'b' : "blabel"
         }
@@ -76,7 +74,6 @@ class cfg:
                 json.dump(self.model_data, d)
         self.timestamp = self.model_data["Data"]
         self.accuracy = {}
-        self.accuracy["leyline"] = { n : self.model_data[n + "_leyline_accuracy"] if n + "_leyline_accuracy" in self.model_data else 0 for n in self.nations }
         self.accuracy["mining"] = { n : self.model_data[n + "_mining_accuracy"] if n + "_mining_accuracy" in self.model_data else 0 for n in self.nations }
     
     def write(self, index, value):

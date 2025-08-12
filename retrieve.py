@@ -3,15 +3,12 @@ import glob
 import time
 import numpy as np
 import logging as log
-import tqdm as progress
 
 from os import remove
 from os.path import isfile
 from datetime import datetime as date
-from multiprocessing.pool import ThreadPool
 
 import config
-from process import process_features
 
 class DataRetriever():
     def __init__(self, cfg:config.cfg):
@@ -49,10 +46,12 @@ class DataRetriever():
             # Open the Google Sheets document
             sheet = self.cfg.ws.worksheet(n + " Data")
             
-            # Find column for leyline screenshots
-            leyline_col = sheet.find("Leyline", 1).col
+            # Find column for leyline beginnings
+            leyline_col = sheet.find("Leyline Positions", 1).col
+            # Find column for end of sheet data
+            end_col = sheet.find("2", 1).col
             # Get all image URLs
-            data_amount = len(sheet.col_values(leyline_col)[2:])
+            data_amount = sheet.find(date.today().strftime("%m/%d/%y"), in_column=1).row - 2
             # Check if current data is sufficent
             current_amount = len(self.ex_data[i]["d"])
             if data_amount == current_amount:
@@ -76,16 +75,10 @@ class DataRetriever():
             self.ex_data[i]['1'].extend([x[0] for x in ores])
             self.ex_data[i]['2'].extend([x[1] for x in ores])
             
-            # Get all image URLs
-            image_urls = sheet.col_values(leyline_col)[2 + current_amount: 2 + data_amount]
-            self.ex_data[i]['u'].extend(image_urls)
-            
-            # Find column for end of sheet data
-            end_col = sheet.find("2", 1).col
             # Get all labels [[y,b], [y,b], ...]
-            label_data = sheet.range(3 + current_amount, leyline_col + 1, 3 + data_amount, end_col - 1)
+            label_data = sheet.range(3 + current_amount, leyline_col, 3 + data_amount, end_col - 1)
             # Split range data by row
-            leylines = [label_data[i:i + end_col - 1 - leyline_col] for i in range(0, len(label_data), end_col - 1 - leyline_col)]
+            leylines = [label_data[i:i + end_col - leyline_col] for i in range(0, len(label_data), end_col - leyline_col)]
             # Get cell values instead of Cell objects
             leylines = [[x.value for x in y] for y in leylines]
             # Trim to only indices, remove blanks
@@ -99,33 +92,17 @@ class DataRetriever():
             for l in self.cfg.suffix_names.keys():
                 if l != 'f':
                     np.save(self.cfg.data_prefix + n.lower() + self.cfg.suffix[l] + ".npy", np.array(self.ex_data[i][l]))
-
-            self.cfg.write_log(f"Data: [{n}] Starting image processing...", log.info)
-            # Iterate through each image URL
-            self.retrieve_images(n, i, image_urls)
-            #for url in progress.tqdm(image_urls, desc=n + " Image Progress", total=len(image_urls)):
-                # Get image features from url
-                #self.ex_data[i]['f'].append(process_features(url))
-            # Save features to .npy file
-            np.save(self.cfg.data_prefix + n.lower() + self.cfg.suffix['f'] + ".npy", np.array(self.ex_data[i]['f']))
                 
             self.cfg.write_log(f"Data: [{n}] Data retrieved.", log.info)
+            self.cfg.write_log(f"Data: [{n}] Waiting for cooldown...", log.info)
+            time.sleep(15)
             
         self.cfg.write_log("Data: Updating timestamp...", log.info, True)
 
         # Write the timestamp for when data was updated
         self.cfg.write_model("Data", date.now().timestamp())
             
-        self.cfg.write_log("Data: Features and labels saved successfully.", log.info, True)
-
-    def retrieve_images(self, region, region_num, urls):
-        def thread_retrieve(url):
-            return process_features(url)
-        start = time.time()
-        with ThreadPool(processes=100) as pool:
-            for result in pool.map(thread_retrieve, urls):
-                self.ex_data[region_num]['f'].append(result)
-        print(f"Data: [{ region }] Images processed in { time.time() - start :.2f}s")
+        self.cfg.write_log("Data: Labels saved successfully.", log.info, True)
 
 # Main function
 def main():
