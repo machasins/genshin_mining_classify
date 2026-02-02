@@ -1,9 +1,10 @@
 {
-  "Data": 1755027982.641046,
-  "Mondstadt_mining_accuracy": 0.9591916218841193,
-  "Liyue_mining_accuracy": 0.9829747842853589,
-  "Inazuma_mining_accuracy": 0.9675157734580748,
-  "Sumeru_mining_accuracy": 0.9845420486171308,
-  "Fontaine_mining_accuracy": 0.8529974253832187,
-  "Natlan_mining_accuracy": 0.9583258782305549
+  "Data": 1769993067.618906,
+  "Mondstadt_mining_accuracy": 0.9554513686515881,
+  "Liyue_mining_accuracy": 0.9800099341114832,
+  "Inazuma_mining_accuracy": 0.9665730347039225,
+  "Sumeru_mining_accuracy": 0.9879883175702973,
+  "Fontaine_mining_accuracy": 0.8981558590282859,
+  "Natlan_mining_accuracy": 0.9502805681011002,
+  "Nod Krai_mining_accuracy": 0.7084399123799379
 }

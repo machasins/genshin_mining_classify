@@ -20,24 +20,14 @@ class DataRetriever():
     def read_data(self):
         
         self.ex_data = []
-        if not self.cfg.force_data_reset:
-            for n in self.cfg.nations:
-                self.cfg.write_log(f"Data: Reading { n } data...", log.info)
-                nation_data = {}
-                for k in self.cfg.suffix_names.keys():
-                    filename = self.cfg.data_prefix + n.lower() + self.cfg.suffix[k] + ".npy"
-                    nation_data[k] = np.array(np.load(filename)).tolist() if isfile(filename) else []
-                self.ex_data.append(nation_data)
-            self.cfg.write_log("Data: Reading nation data complete.", log.info)
-        else:
-            self.cfg.write_log("Data: Force reset initiated...", log.warning, True)
-            self.ex_data = [{ k : [] for k in self.cfg.suffix_names.keys() } for _ in self.cfg.nations]
-            
-            files = glob.glob(self.cfg.data_prefix + "*")
-            for f in files:
-                remove(f)
+        self.cfg.write_log("Data: Force reset initiated...", log.warning, True)
+        self.ex_data = [{ k : [] for k in self.cfg.suffix_names.keys() } for _ in self.cfg.nations]
+        
+        files = glob.glob(self.cfg.data_prefix + "*")
+        for f in files:
+            remove(f)
 
-            self.cfg.write("force_data_reset", False)
+        self.cfg.write("force_data_reset", False)
     
     def retrieve_mining_data(self):
         self.cfg.write_log("Data: Constructing nation data...", log.info)
@@ -51,7 +41,7 @@ class DataRetriever():
             # Find column for end of sheet data
             end_col = sheet.find("2", 1).col
             # Get all image URLs
-            data_amount = sheet.find(date.today().strftime("%m/%d/%y"), in_column=1).row - 2
+            data_amount = sheet.find(date.today().strftime("%m/%d/%y"), in_column=1).row - 3
             # Check if current data is sufficent
             current_amount = len(self.ex_data[i]["d"])
             if data_amount == current_amount:
@@ -60,7 +50,7 @@ class DataRetriever():
             self.cfg.write_log(f"Data: [{n}] Starting data retrieval...", log.info)
             
             # Get all date data
-            dates = sheet.col_values(1)[2 + current_amount:2 + data_amount]
+            dates = sheet.col_values(1)[2 + current_amount:3 + data_amount]
             dates = [date.strptime(d, '%m/%d/%y') for d in dates]
             self.ex_data[i]["d"].extend([[d.year, d.month, d.day] for d in dates])
             
