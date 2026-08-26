@@ -39,7 +39,7 @@ class Input():
         self.leyline_class = {}
         
         # Initialize sheets data
-        self.leyline_col = self.cfg.sheet.find("Leyline Positions", 1).col
+        self.leyline_col = self.cfg.sheet.find("Leylines", 1).col
         self.ending_col = self.cfg.sheet.find("Options:", 1).col - 3
         
         self.cfg.write_log("Input: Ready", log.info)

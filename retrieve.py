@@ -37,7 +37,7 @@ class DataRetriever():
             sheet = self.cfg.ws.worksheet(n + " Data")
             
             # Find column for leyline beginnings
-            leyline_col = sheet.find("Leyline Positions", 1).col
+            leyline_col = sheet.find("Leylines", 1).col
             # Find column for end of sheet data
             end_col = sheet.find("2", 1).col
             # Get all image URLs
