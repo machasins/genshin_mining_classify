@@ -7,6 +7,10 @@ import logging as log
 from os import remove
 from os.path import isfile
 from datetime import datetime as date
+import pandas as pd
+
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from gspread.exceptions import APIError
 
 import config
 
@@ -29,8 +33,15 @@ class DataRetriever():
 
         self.cfg.write("force_data_reset", False)
     
+    # Retry on API errors or connection issues
+    @retry(
+        stop=stop_after_attempt(5), 
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type((APIError, ConnectionError))
+    )
     def retrieve_mining_data(self):
         self.cfg.write_log("Data: Constructing nation data...", log.info)
+        today = pd.to_datetime(self.cfg.ws.worksheet("DataEntry").acell("AW5").value).strftime("%m/%d/%y")
         for i, n in enumerate(self.cfg.nations):
                 
             # Open the Google Sheets document
@@ -41,7 +52,7 @@ class DataRetriever():
             # Find column for end of sheet data
             end_col = sheet.find("2", 1).col
             # Get all image URLs
-            data_amount = sheet.find(date.today().strftime("%m/%d/%y"), in_column=1).row - 3
+            data_amount = sheet.find(today, in_column=1).row - 3
             # Check if current data is sufficent
             current_amount = len(self.ex_data[i]["d"])
             if data_amount == current_amount:
@@ -84,8 +95,6 @@ class DataRetriever():
                     np.save(self.cfg.data_prefix + n.lower() + self.cfg.suffix[l] + ".npy", np.array(self.ex_data[i][l]))
                 
             self.cfg.write_log(f"Data: [{n}] Data retrieved.", log.info)
-            self.cfg.write_log(f"Data: [{n}] Waiting for cooldown...", log.info)
-            time.sleep(15)
             
         self.cfg.write_log("Data: Updating timestamp...", log.info, True)
 

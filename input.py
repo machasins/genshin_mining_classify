@@ -8,6 +8,10 @@ import train
 import config
 import retrieve
 
+import gspread
+from gspread.utils import rowcol_to_a1 as a1
+from gspread.utils import ValueRenderOption, ValueInputOption
+
 class Input():
     def __init__(self, cfg:config.cfg) -> None:
         self.cfg = cfg
@@ -50,7 +54,7 @@ class Input():
                 ret = f()
                 return ret
             except:
-                time.sleep(60)
+                time.sleep(10)
     
     # Get the current date, compared to the start date of the nation's data
     def get_date(self) -> list:
@@ -105,6 +109,30 @@ class Input():
             row = (nation + 1) * 3
             [self.cfg.sheet.update_cell(row, c + 1, '2') for c in self.ore_hidden[nation] if not self.cfg.sheet.cell(row, c + 1).value]
         return self.try_access_sheets(f)
+    
+    def write_ore_hidden_all(self) -> None:
+        updates: dict[tuple[int, int], (str, int)] = {}
+        nations: list[int] = range(0, len(self.cfg.nations))
+        for n in nations:
+            if self.ore_hidden[n]:
+                for h in self.ore_hidden[n]:
+                    updates[((n + 1) * 3, h + 1)] = 2
+        
+        unique_rows = list(set([r for r, _ in updates.keys()]))
+        max_col = max([coord[1] for coord in updates.keys()])
+        
+        ranges = [f"{ a1(r, 1) }:{ a1(r, max_col) }" for r in unique_rows]
+        data: list[gspread.ValueRange] = self.cfg.sheet.batch_get(ranges, value_render_option=ValueRenderOption.unformatted)
+        for (r, c), value in updates.items():
+            row = unique_rows.index(r)
+            if not data[row] or not data[row][0]:
+                data[row] = [[]]
+            if len(data[row]) < max_col:
+                data[row][0].extend([None]*(max_col - len(data[row][0])))
+                data[row][0] = [None if d == "" else d for d in data[row][0]]
+            if data[row][0][c - 1] is None:
+                data[row][0][c - 1] = value
+        self.cfg.sheet.batch_update([{ "range" : r, "values" : data[i] } for i, r in enumerate(ranges)], value_input_option=ValueInputOption.user_entered)
     
     # Format the shown ores in a displayable format
     def get_ore_shown_formatted(self, nation: int) -> str:

@@ -120,10 +120,14 @@ class Interface():
         def indiv_write_mining(self, nation, index):
             # Check if AI has been run
             if self.input.ore_hidden[index]:
-                self.input.write_ore_hidden(index)
                 self.var[f"{nation}_ore_2"].set(self.var[f"{nation}_ore_g"].get())
+                
+        def write_all_mining(self, nation, index):
+            self.input.write_ore_hidden_all()
         
         self.start_thread_queue(indiv_write_mining, self.nations)
+        
+        self.start_thread_queue(write_all_mining, ["nice"])
     
     def print_info(self):
         def print_func(self, nation, index):
