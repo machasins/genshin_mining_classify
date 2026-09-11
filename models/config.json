@@ -1,11 +1,11 @@
 {
-  "Data": 1788382238.981976,
-  "Mondstadt_mining_accuracy": 0.9622126058766199,
-  "Liyue_mining_accuracy": 0.9826284207324371,
-  "Inazuma_mining_accuracy": 0.9626354021755292,
-  "Sumeru_mining_accuracy": 0.9845007310252016,
-  "Fontaine_mining_accuracy": 0.8784882231870195,
-  "Natlan_mining_accuracy": 0.9056600925036387,
-  "Nod Krai_mining_accuracy": 0.9694040713517563,
-  "Snezhnaya_mining_accuracy": 0.5833333333333334
+  "Data": 1789086307.265036,
+  "Mondstadt_mining_accuracy": 0.9585192130806047,
+  "Liyue_mining_accuracy": 0.9829256137447423,
+  "Inazuma_mining_accuracy": 0.9673980810379421,
+  "Sumeru_mining_accuracy": 0.9872404792380801,
+  "Fontaine_mining_accuracy": 0.8813914983718657,
+  "Natlan_mining_accuracy": 0.9610126423400464,
+  "Nod Krai_mining_accuracy": 0.9651453686063818,
+  "Snezhnaya_mining_accuracy": 1.0
 }

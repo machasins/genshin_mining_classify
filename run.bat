@@ -1,1 +1,1 @@
-python3.9.exe interface.py -v -a
+python interface.py -v -a

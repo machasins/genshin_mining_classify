@@ -1,0 +1,6 @@
+gspread
+joblib
+numpy
+pandas
+scikit_learn
+tenacity
